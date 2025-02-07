@@ -2,13 +2,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 import './utils/style/app.scss'
 
-import Page1 from './pages/Page1'
+import Index from './pages/Index'
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Page1 />} />
+        <Route path="/" element={<Index />} />
       </Routes>
     </Router>
   )
