@@ -5,6 +5,8 @@ import useMoviesStore from '../../store/moviesStore'
 import fetchUrl from '../../utils/fetchUrl'
 import MovieCard from '../../components/MovieCard'
 
+import './index.scss'
+
 const Game = () => {
   const { pseudo } = useUserStore()
   const { movies, setMovies } = useMoviesStore()
@@ -64,7 +66,7 @@ const Game = () => {
     if (!moviesDict || Object.keys(moviesDict).length === 0) return
     const movieEntries = Object.entries(moviesDict)
     const shuffled = movieEntries.sort(() => 0.5 - Math.random())
-    setSelectedMovies(shuffled.slice(0, 25))
+    setSelectedMovies(shuffled.slice(0, 24))
   }
 
   if (!pseudo) {
@@ -79,11 +81,13 @@ const Game = () => {
   return (
     <div>
       {selectedMovies.length > 0 ? (
-        <ul>
+        <ul className="movies">
           {selectedMovies.map(([id, movie]) => (
-            <li key={id}>
-              <MovieCard title={movie.title} backdrops={movie.backdrops} />
-            </li>
+            <MovieCard
+              key={id}
+              title={movie.title}
+              backdrops={movie.backdrops}
+            />
           ))}
         </ul>
       ) : (

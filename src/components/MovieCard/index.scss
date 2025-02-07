@@ -1,0 +1,91 @@
+.movieCard {
+  position: relative;
+  width: 100%;
+  padding: 32px;
+  background-color: #1016155e;
+  border: 2px solid #151f1d98;
+  overflow: hidden;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__input {
+    border-radius: 8px;
+    padding: 12px 16px;
+    background-color: transparent;
+    border: 2px solid #151f1d98;
+    color: #deeeec;
+    font-size: 16px;
+  }
+
+  &__pagination {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+  }
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate3d(100%, 0, 0);
+    transition: transform 0.3s ease;
+
+    &--current {
+      transform: translate3d(0%, 0, 0);
+    }
+  }
+
+  &__button {
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    height: 100%;
+    padding-inline: 24px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 64px;
+    z-index: 1;
+    color: #deeeec;
+
+    &--left {
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.6) 0%,
+        transparent 75%
+      );
+
+      &:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.6) 0%,
+          transparent 100%
+        );
+      }
+    }
+
+    &--right {
+      right: 0;
+      background: linear-gradient(
+        -90deg,
+        rgba(0, 0, 0, 0.6) 0%,
+        transparent 75%
+      );
+
+      &:hover {
+        background: linear-gradient(
+          -90deg,
+          rgba(0, 0, 0, 0.6) 0%,
+          transparent 100%
+        );
+      }
+    }
+  }
+}
