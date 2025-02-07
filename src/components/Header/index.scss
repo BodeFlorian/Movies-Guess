@@ -1,0 +1,13 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 32px;
+  height: min-content;
+  background-color: #101615;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  position: sticky;
+  inset: 0;
+  z-index: 1000;
+}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useUserStore from '../../store/userStore'
 import useMoviesStore from '../../store/moviesStore'
+import useGameStore from '../../store/gameStore'
 import fetchUrl from '../../utils/fetchUrl'
 import MovieCard from '../../components/MovieCard'
 
@@ -10,6 +11,7 @@ import './index.scss'
 const Game = () => {
   const { pseudo } = useUserStore()
   const { movies, setMovies } = useMoviesStore()
+  const { totalMovies, setTotalMovies } = useGameStore()
   const navigate = useNavigate()
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +34,7 @@ const Game = () => {
   const getMovies = async () => {
     const moviesDict = {}
 
-    for (let page = 1; page <= 20; page++) {
+    for (let page = 1; page <= 13; page++) {
       const url = `https://api.themoviedb.org/3/movie/top_rated?language=fr-FR&page=${page}`
       const data = await fetchUrl(url)
 
@@ -64,9 +66,12 @@ const Game = () => {
 
   const selectRandomMovies = (moviesDict) => {
     if (!moviesDict || Object.keys(moviesDict).length === 0) return
+
     const movieEntries = Object.entries(moviesDict)
-    const shuffled = movieEntries.sort(() => 0.5 - Math.random())
-    setSelectedMovies(shuffled.slice(0, 24))
+    const shuffled = movieEntries.sort(() => 0.5 - Math.random()).slice(0, 24)
+
+    setSelectedMovies(shuffled)
+    setTotalMovies(shuffled.length)
   }
 
   if (!pseudo) {
