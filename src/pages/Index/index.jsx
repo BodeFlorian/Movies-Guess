@@ -1,10 +1,18 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import useUserStore from '../../store/userStore.js'
 
 const Index = () => {
   const [error, setError] = useState('')
   const [inputValue, setInputValue] = useState('')
   const { pseudo, setPseudo } = useUserStore()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (pseudo) {
+      navigate('/menu')
+    }
+  }, [pseudo, navigate])
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
