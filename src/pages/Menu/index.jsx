@@ -14,6 +14,9 @@ const Menu = () => {
   return (
     <div>
       <p>Bienvenue {pseudo}</p>
+      <div>
+        <button onClick={() => navigate('/game')}>Lancer une partie</button>
+      </div>
     </div>
   )
 }

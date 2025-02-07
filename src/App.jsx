@@ -4,6 +4,8 @@ import './utils/style/app.scss'
 
 import Index from './pages/Index'
 import Menu from './pages/Menu'
+import Game from './pages/Game'
+import Error from './pages/Error'
 
 const App = () => {
   return (
@@ -11,7 +13,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/menu" element={<Menu />} />
-        <Route path="*" element={() => <h1>Page not found</h1>} />
+        <Route path="/game" element={<Game />} />
+        <Route path="*" element={<Error />} />
       </Routes>
     </Router>
   )
