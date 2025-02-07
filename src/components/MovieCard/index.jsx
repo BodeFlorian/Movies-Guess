@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import stringSimilarity from 'string-similarity'
 import useUserStore from '../../store/userStore.js'
 
 import './index.scss'
@@ -29,9 +30,12 @@ const MovieCard = ({ title, backdrops }) => {
   const handleGuessSubmit = (e) => {
     e.preventDefault()
 
-    if (input.toLowerCase() === title.toLowerCase()) {
-      // Ajouter au store
+    const similarityScore = stringSimilarity.compareTwoStrings(
+      input,
+      title.toLowerCase(),
+    )
 
+    if (similarityScore > 0.75) {
       setGuess(true)
     }
   }
