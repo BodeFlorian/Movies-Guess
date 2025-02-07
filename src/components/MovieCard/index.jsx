@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import useUserStore from '../../store/userStore.js'
 
 import './index.scss'
 
 const MovieCard = ({ title, backdrops }) => {
+  const { pseudo } = useUserStore()
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [input, setInput] = useState('')
+  const [guess, setGuess] = useState(false)
 
   const handlePrevClick = () => {
     setCurrentIndex((prevIndex) =>
@@ -16,6 +20,20 @@ const MovieCard = ({ title, backdrops }) => {
     setCurrentIndex((prevIndex) =>
       prevIndex === backdrops.length - 1 ? 0 : prevIndex + 1,
     )
+  }
+
+  const handleGuessChange = (e) => {
+    setInput(e.target.value.toLowerCase())
+  }
+
+  const handleGuessSubmit = (e) => {
+    e.preventDefault()
+
+    if (input.toLowerCase() === title.toLowerCase()) {
+      // Ajouter au store
+
+      setGuess(true)
+    }
   }
 
   return (
@@ -80,11 +98,25 @@ const MovieCard = ({ title, backdrops }) => {
         </button>
       </div>
 
-      <input
-        className="movieCard__input"
-        type="text"
-        placeholder="Nom du film"
-      />
+      {!guess ? (
+        <form className="movieCard__form" onSubmit={handleGuessSubmit}>
+          <input
+            type="text"
+            placeholder="Nom du film"
+            value={input}
+            onChange={handleGuessChange}
+            className="movieCard__input"
+          />
+          <button type="submit">Submit</button>
+        </form>
+      ) : (
+        <div className="movieCard__guess">
+          <p className="movieCard__user">
+            Trouvé par <span>{pseudo}</span>
+          </p>
+          <span className="movieCard__title">{title}</span>
+        </div>
+      )}
     </li>
   )
 }
