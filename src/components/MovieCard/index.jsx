@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import PropTypes from 'prop-types'
 import stringSimilarity from 'string-similarity'
 import useUserStore from '../../store/userStore.js'
@@ -8,19 +8,12 @@ import './index.scss'
 
 const MovieCard = ({ title, backdrops }) => {
   const { pseudo } = useUserStore()
+  const { selectedMovies, updateMovieGuessState } = useGameLogic()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState('')
-  const [guessState, setGuessState] = useState(false)
-  const { updateGameState } = useGameLogic()
 
-  useEffect(() => {
-    const savedGuessState = JSON.parse(
-      localStorage.getItem(`guessState-${title}`),
-    )
-    if (savedGuessState) {
-      setGuessState(savedGuessState)
-    }
-  }, [title])
+  const movieData = selectedMovies.find((movie) => movie.title === title)
+  const guessState = movieData?.guess || false
 
   const handlePrevClick = () => {
     setCurrentIndex((prevIndex) =>
@@ -47,9 +40,7 @@ const MovieCard = ({ title, backdrops }) => {
     )
 
     if (similarityScore > 0.75) {
-      updateGameState()
-      setGuessState(true)
-      localStorage.setItem(`guessState-${title}`, JSON.stringify(true))
+      updateMovieGuessState(title)
     }
   }
 
@@ -65,7 +56,6 @@ const MovieCard = ({ title, backdrops }) => {
             fill="currentColor"
             strokeWidth="0"
             viewBox="0 0 512 512"
-            className="w-8 h-8 text-white opacity-75 group-hover:opacity-100 transition-opacity"
             height="1em"
             width="1em"
             xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +89,6 @@ const MovieCard = ({ title, backdrops }) => {
             fill="currentColor"
             strokeWidth="0"
             viewBox="0 0 512 512"
-            className="w-8 h-8 text-white opacity-75 group-hover:opacity-100 transition-opacity"
             height="1em"
             width="1em"
             xmlns="http://www.w3.org/2000/svg"

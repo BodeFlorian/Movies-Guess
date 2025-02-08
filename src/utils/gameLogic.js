@@ -4,7 +4,7 @@ import useGameStore from '../store/gameStore'
 import useMoviesStore from '../store/moviesStore'
 import { getMovies, selectRandomMovies } from './movieService'
 
-const GAME_DURATION = 1.5 * 60 * 1000
+const GAME_DURATION = 3 * 60 * 1000 // 3 minutes
 
 export const useGameLogic = () => {
   const { movies, setMovies } = useMoviesStore()
@@ -60,7 +60,21 @@ export const useGameLogic = () => {
       setMovies(moviesDict)
     }
 
-    const shuffled = selectRandomMovies(moviesDict)
+    const randomMovies = selectRandomMovies(moviesDict)
+
+    const shuffled = randomMovies.map(([id, movie]) => {
+      if (!movie || !movie.title || !movie.backdrops) {
+        console.error('Invalid movie data:', movie)
+        return { title: 'Unknown', backdrops: [], guess: false }
+      }
+
+      return {
+        title: movie.title,
+        backdrops: movie.backdrops,
+        guess: false,
+      }
+    })
+
     const endTime = Date.now() + GAME_DURATION
     setSelectedMovies(shuffled)
     setTotalMovies(shuffled.length)
@@ -71,8 +85,18 @@ export const useGameLogic = () => {
 
   const endGame = () => {
     resetGame()
-    localStorage.removeItem('currentGame')
     navigate('/menu')
+  }
+
+  const updateMovieGuessState = (title) => {
+    setSelectedMovies((prevMovies) => {
+      const updatedMovies = prevMovies.map((movie) =>
+        movie.title === title ? { ...movie, guess: true } : movie,
+      )
+      saveGameState(updatedMovies, gameEndTime, guess + 1)
+      return updatedMovies
+    })
+    setGuess(guess + 1)
   }
 
   const saveGameState = (movies, endTime, currentGuess) => {
@@ -86,13 +110,13 @@ export const useGameLogic = () => {
     )
   }
 
-  const updateGameState = () => {
-    const newGuess = guess + 1
-    setGuess(newGuess)
-    saveGameState(selectedMovies, gameEndTime, newGuess)
+  return {
+    loading,
+    gameEndTime,
+    selectedMovies,
+    updateMovieGuessState,
+    resetGame,
   }
-
-  return { loading, gameEndTime, selectedMovies, updateGameState, resetGame }
 }
 
 export default useGameLogic

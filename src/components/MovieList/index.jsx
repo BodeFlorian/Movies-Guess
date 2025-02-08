@@ -1,4 +1,4 @@
-import MovieCard from './../MovieCard'
+import MovieCard from '../MovieCard'
 import './index.scss'
 
 const MovieList = ({ movies }) => {
@@ -8,8 +8,12 @@ const MovieList = ({ movies }) => {
 
   return (
     <ul className="movies">
-      {movies.map(([id, movie]) => (
-        <MovieCard key={id} title={movie.title} backdrops={movie.backdrops} />
+      {movies.map((movie, index) => (
+        <MovieCard
+          key={index}
+          title={movie.title}
+          backdrops={movie.backdrops}
+        />
       ))}
     </ul>
   )
