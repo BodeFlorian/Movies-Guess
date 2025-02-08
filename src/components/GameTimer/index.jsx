@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import './index.scss'
 
 const GameTimer = ({ gameEndTime }) => {
   const [timeLeft, setTimeLeft] = useState(0)
@@ -11,7 +12,7 @@ const GameTimer = ({ gameEndTime }) => {
     return () => clearInterval(timer)
   }, [gameEndTime])
 
-  return <h3>Temps restant: {timeLeft} secondes</h3>
+  return <h3 className="timer">{timeLeft} secondes</h3>
 }
 
 export default GameTimer
