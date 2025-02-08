@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import stringSimilarity from 'string-similarity'
 import useUserStore from '../../store/userStore.js'
-import useGameStore from '../../store/gameStore.js'
+import useGameLogic from '../../utils/gameLogic.js'
 
 import './index.scss'
 
@@ -11,7 +11,16 @@ const MovieCard = ({ title, backdrops }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState('')
   const [guessState, setGuessState] = useState(false)
-  const { guess, setGuess } = useGameStore()
+  const { updateGameState } = useGameLogic()
+
+  useEffect(() => {
+    const savedGuessState = JSON.parse(
+      localStorage.getItem(`guessState-${title}`),
+    )
+    if (savedGuessState) {
+      setGuessState(savedGuessState)
+    }
+  }, [title])
 
   const handlePrevClick = () => {
     setCurrentIndex((prevIndex) =>
@@ -38,9 +47,9 @@ const MovieCard = ({ title, backdrops }) => {
     )
 
     if (similarityScore > 0.75) {
-      const newGuess = guess + 1
-      setGuess(newGuess)
+      updateGameState()
       setGuessState(true)
+      localStorage.setItem(`guessState-${title}`, JSON.stringify(true))
     }
   }
 

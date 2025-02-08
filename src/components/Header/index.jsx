@@ -2,17 +2,19 @@ import './index.scss'
 import useUserStore from '../../store/userStore'
 import useMoviesStore from '../../store/moviesStore'
 import useGameStore from '../../store/gameStore'
+import useGameLogic from '../../utils/gameLogic'
 
 const Header = () => {
   const { pseudo, setPseudo } = useUserStore()
   const { setMovies } = useMoviesStore()
-  const { guess, totalMovies, setGuess, setTotalMovies } = useGameStore()
+  const { guess, totalMovies } = useGameStore()
+  const { resetGame } = useGameLogic()
 
   const handleLogout = () => {
     setPseudo('')
     setMovies({})
-    setTotalMovies(0)
-    setGuess(0)
+    localStorage.removeItem('currentGame')
+    resetGame()
   }
 
   return (
