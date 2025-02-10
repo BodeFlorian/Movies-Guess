@@ -4,6 +4,8 @@ import stringSimilarity from 'string-similarity'
 import useUserStore from '../../store/userStore.js'
 import useGameStore from '../../store/gameStore.js'
 
+import leftArrow from '../../assets/icons/left-arrow.svg'
+import rightArrow from '../../assets/icons/right-arrow.svg'
 import './index.scss'
 
 const MovieCard = ({ title, backdrops }) => {
@@ -51,25 +53,9 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--left"
           onClick={handlePrevClick}
-          name="Image précédente"
+          name="prev-image"
         >
-          <svg
-            stroke="currentColor"
-            fill="currentColor"
-            strokeWidth="0"
-            viewBox="0 0 512 512"
-            height="1em"
-            width="1em"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="48"
-              d="M328 112 184 256l144 144"
-            ></path>
-          </svg>
+          {leftArrow}
         </button>
         <div className="movieCard__backdrops">
           {backdrops.map((backdrop, index) => (
@@ -85,25 +71,9 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--right"
           onClick={handleNextClick}
-          name="Image suivante"
+          name="next-image"
         >
-          <svg
-            stroke="currentColor"
-            fill="currentColor"
-            strokeWidth="0"
-            viewBox="0 0 512 512"
-            height="1em"
-            width="1em"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="48"
-              d="m184 112 144 144-144 144"
-            ></path>
-          </svg>
+          {rightArrow}
         </button>
       </div>
 
@@ -116,7 +86,7 @@ const MovieCard = ({ title, backdrops }) => {
             onChange={handleGuessChange}
             className="movieCard__input"
           />
-          <button name="Envoi du formulaire" type="submit">
+          <button name="form-submit" type="submit">
             Submit
           </button>
         </form>
