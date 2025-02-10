@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <!-- Page d'accueil -->
+  <url>
+    <loc>https://votre-site.com/</loc>
+    <lastmod>2025-02-09</lastmod>
+    <priority>1.00</priority>
+  </url>
+
+  <!-- Menu -->
+  <url>
+    <loc>https://votre-site.com/menu</loc>
+    <lastmod>2025-02-09</lastmod>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Jeu -->
+  <url>
+    <loc>https://votre-site.com/game</loc>
+    <lastmod>2025-02-09</lastmod>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Résultats du jeu -->
+  <url>
+    <loc>https://votre-site.com/game/results</loc>
+    <lastmod>2025-02-09</lastmod>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Page d'erreur -->
+  <url>
+    <loc>https://votre-site.com/*</loc>
+    <lastmod>2025-02-09</lastmod>
+    <priority>0.30</priority>
+  </url>
+
+</urlset>

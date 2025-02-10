@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /menu
+Disallow: /game/
+
+Sitemap: https://movies-guess.netlify.app/sitemap.xml
