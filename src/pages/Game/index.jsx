@@ -104,6 +104,7 @@ const Game = () => {
     }
 
     if (movies.length === 0) {
+      console.log('Chargement des films...')
       initMovies()
     }
 
@@ -112,6 +113,7 @@ const Game = () => {
       selectedMovies.length === 0 &&
       currentGame.length === 0
     ) {
+      console.log('Chargement des films...')
       initGame()
     }
 
@@ -146,6 +148,7 @@ const Game = () => {
         resetGame()
         setSelectedMovies([])
         console.log('Le jeu est terminé')
+        navigate('/menu')
       }
     }, 1000)
 
