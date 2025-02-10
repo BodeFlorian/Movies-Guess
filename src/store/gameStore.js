@@ -26,6 +26,13 @@ const useGameStore = create((set, get) => ({
     set({ isGameStarted: true })
   },
 
+  // Fin du jeu
+  endGame: () => {
+    localStorage.setItem('isGameStarted', JSON.stringify(false))
+    localStorage.removeItem('gameEndTime')
+    set({ gameEndTime: null, isGameStarted: false })
+  },
+
   // Nombre de films trouvés par le joueur
   setGuess: (newGuess) => {
     localStorage.setItem('guess', newGuess)
@@ -56,10 +63,12 @@ const useGameStore = create((set, get) => ({
   },
 
   // Mise à jour d'un film deviné et du score
-  updateGuess: (title) => {
+  updateGuess: (title, guessedBy) => {
     set((state) => {
       const updatedMovies = state.currentGame.map((movie) =>
-        movie.title === title ? { ...movie, isGuess: true } : movie,
+        movie.title === title
+          ? { ...movie, guess: { isGuess: true, guessBy: guessedBy } }
+          : movie,
       )
 
       const newGuess = state.guess + 1

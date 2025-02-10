@@ -7,4 +7,8 @@ body {
 
 main {
   padding-inline: 80px;
+
+  @media screen and (max-width: 768px) {
+    padding-inline: 32px;
+  }
 }

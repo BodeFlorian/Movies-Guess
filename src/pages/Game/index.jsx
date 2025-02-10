@@ -16,9 +16,9 @@ const Game = () => {
     isGameStarted,
     gameEndTime,
     setGameEndTime,
-    resetGame,
     setCurrentGame,
     currentGame,
+    endGame,
   } = useGameStore()
 
   const [selectedMovies, setSelectedMovies] = useState([])
@@ -32,6 +32,18 @@ const Game = () => {
       navigate('/')
     }
   }, [pseudo, navigate])
+
+  /**
+   * Redirige l'utilisateur vers la page des résultats si la partie est terminée.
+   * Redirige l'utilisateur vers la page du menu si aucune partie n'est en cours.
+   */
+  useEffect(() => {
+    if (!isGameStarted && currentGame.length > 0) {
+      navigate('/game/results')
+    } else if (!isGameStarted && currentGame.length === 0) {
+      navigate('/menu')
+    }
+  }, [isGameStarted, currentGame, navigate])
 
   /**
    * Récupère la liste des films depuis l'API et les stocke dans le store.
@@ -60,7 +72,7 @@ const Game = () => {
 
     // Sélectionne aléatoirement un ensemble de films et initialise leur état
     const randomMovies = selectRandomMovies(movies, TOTAL_FILMS).map(
-      (movie) => ({ ...movie, isGuess: false, guessBy: '' }),
+      (movie) => ({ ...movie, guess: { isGuess: false, guessBy: null } }),
     )
     setSelectedMovies(randomMovies)
 
@@ -95,8 +107,6 @@ const Game = () => {
    * - Sauvegarde le jeu après l'initialisation.
    */
   useEffect(() => {
-    if (!isGameStarted) return
-
     if (currentGame.length > 0 && selectedMovies.length === 0) {
       restoreGame()
       setLoading(false)
@@ -127,7 +137,6 @@ const Game = () => {
       setLoading(false)
     }
   }, [
-    isGameStarted,
     movies.length,
     selectedMovies.length,
     currentGame.length,
@@ -145,15 +154,14 @@ const Game = () => {
 
     const gameTimer = setInterval(() => {
       if (Date.now() >= gameEndTime) {
-        resetGame()
-        setSelectedMovies([])
+        endGame()
         console.log('Le jeu est terminé')
-        navigate('/menu')
+        navigate('/game/results')
       }
     }, 1000)
 
     return () => clearInterval(gameTimer)
-  }, [gameEndTime, resetGame, navigate])
+  }, [gameEndTime, endGame, navigate])
 
   // Empêche le rendu si l'utilisateur est redirigé
   if (!pseudo) return null

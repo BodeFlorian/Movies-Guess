@@ -8,12 +8,13 @@ import './index.scss'
 
 const MovieCard = ({ title, backdrops }) => {
   const { pseudo } = useUserStore()
-  const { getMovie, updateGuess } = useGameStore()
+  const { isGameStarted, getMovie, updateGuess } = useGameStore()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState('')
 
   const movieData = getMovie(title)
-  const guessState = movieData?.isGuess || false
+  const guessState = movieData?.guess?.isGuess || false
+  const guessedBy = movieData?.guess?.guessBy || ''
 
   const handlePrevClick = () => {
     setCurrentIndex((prevIndex) =>
@@ -40,7 +41,7 @@ const MovieCard = ({ title, backdrops }) => {
     )
 
     if (similarityScore > 0.65) {
-      updateGuess(title)
+      updateGuess(title, pseudo)
     }
   }
 
@@ -50,6 +51,7 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--left"
           onClick={handlePrevClick}
+          alt="Image précédente"
         >
           <svg
             stroke="currentColor"
@@ -83,6 +85,7 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--right"
           onClick={handleNextClick}
+          alt="Image suivante"
         >
           <svg
             stroke="currentColor"
@@ -104,7 +107,7 @@ const MovieCard = ({ title, backdrops }) => {
         </button>
       </div>
 
-      {!guessState ? (
+      {!guessState && isGameStarted ? (
         <form className="movieCard__form" onSubmit={handleGuessSubmit}>
           <input
             type="text"
@@ -116,10 +119,15 @@ const MovieCard = ({ title, backdrops }) => {
           <button type="submit">Submit</button>
         </form>
       ) : (
-        <div className="movieCard__guess">
-          <p className="movieCard__user">
-            Trouvé par <span>{pseudo}</span>
-          </p>
+        <div
+          className={`movieCard__guess ${!guessState && !isGameStarted ? 'movieCard__guess--false' : 'movieCard__guess--true'}`}
+        >
+          {isGameStarted || (!isGameStarted && guessState) ? (
+            <p className="movieCard__user">
+              Trouvé par <span>{guessedBy}</span>
+            </p>
+          ) : null}
+
           <span className="movieCard__title">{title}</span>
         </div>
       )}

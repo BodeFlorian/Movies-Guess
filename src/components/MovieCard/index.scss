@@ -98,8 +98,6 @@
   }
 
   &__guess {
-    background-color: #2acc53e3;
-    color: #2d4d35e3;
     padding: 16px;
     border-radius: 8px;
     display: flex;
@@ -108,6 +106,16 @@
     gap: 4px;
     font-size: 18px;
     text-align: center;
+
+    &--true {
+      background-color: #2acc53e3;
+      color: #2d4d35e3;
+    }
+
+    &--false {
+      background-color: #ff6262e3;
+      color: #ad0000e3;
+    }
   }
 
   &__user {

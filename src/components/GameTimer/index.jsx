@@ -16,7 +16,7 @@ const GameTimer = ({ gameEndTime }) => {
   }, [gameEndTime])
 
   if (!gameEndTime) {
-    return <h3 className="timer">En attente du début du jeu...</h3>
+    return <h3 className="timer">Partie terminée...</h3>
   }
 
   return <h3 className="timer">{timeLeft} secondes</h3>
