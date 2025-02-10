@@ -12,6 +12,10 @@
   flex-direction: column;
   gap: 1rem;
 
+  @media screen and (max-width: 630px) {
+    padding: 1.25rem;
+  }
+
   &__form {
     width: 100%;
     button {
@@ -65,11 +69,20 @@
     z-index: 1;
     color: #deeeec;
 
+    @media screen and (max-width: 630px) {
+      padding: 1rem;
+    }
+
     img {
       width: 4rem;
       height: 4rem;
       filter: invert(95%) sepia(8%) saturate(22%) hue-rotate(59deg)
         brightness(105%) contrast(106%);
+
+      @media screen and (max-width: 630px) {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
     }
 
     &--left {
