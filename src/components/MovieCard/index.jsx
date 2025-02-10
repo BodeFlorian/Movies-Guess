@@ -51,7 +51,7 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--left"
           onClick={handlePrevClick}
-          alt="Image précédente"
+          name="Image précédente"
         >
           <svg
             stroke="currentColor"
@@ -85,7 +85,7 @@ const MovieCard = ({ title, backdrops }) => {
         <button
           className="movieCard__button movieCard__button--right"
           onClick={handleNextClick}
-          alt="Image suivante"
+          name="Image suivante"
         >
           <svg
             stroke="currentColor"
@@ -116,7 +116,9 @@ const MovieCard = ({ title, backdrops }) => {
             onChange={handleGuessChange}
             className="movieCard__input"
           />
-          <button type="submit">Submit</button>
+          <button name="Envoi du formulaire" type="submit">
+            Submit
+          </button>
         </form>
       ) : (
         <div
