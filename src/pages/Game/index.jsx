@@ -155,10 +155,7 @@ const Game = () => {
       navigate('/game/results')
     }
 
-    if (!gameEndTime || Date.now() >= gameEndTime) {
-      handleGameEnd()
-      return
-    }
+    if (!gameEndTime) return
 
     const gameTimer = setInterval(() => {
       if (Date.now() >= gameEndTime) {
