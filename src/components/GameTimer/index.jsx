@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import useGameStore from '../../store/gameStore'
 import PropTypes from 'prop-types'
-import './index.scss'
 
-const GameTimer = ({ gameEndTime }) => {
+const GameTimer = () => {
+  const navigate = useNavigate()
+  const { isGameStarted, gameEndTime, resetGame } = useGameStore()
   const [timeLeft, setTimeLeft] = useState(0)
 
   useEffect(() => {
@@ -15,11 +18,28 @@ const GameTimer = ({ gameEndTime }) => {
     return () => clearInterval(timer)
   }, [gameEndTime])
 
-  if (!gameEndTime) {
-    return <h3 className="timer">Partie terminée...</h3>
+  const handleBackToMenu = () => {
+    resetGame()
+    navigate('/menu')
   }
 
-  return <h3 className="timer">{timeLeft} secondes</h3>
+  if (!gameEndTime && !isGameStarted) {
+    return (
+      <button
+        className="header__button header__button-menu"
+        name="menu-button"
+        onClick={handleBackToMenu}
+      >
+        Retour au menu
+      </button>
+    )
+  }
+
+  if (!gameEndTime && isGameStarted) {
+    return <p className="header__timer">Démarrage de la partie</p>
+  }
+
+  return <h3 className="header__timer">{timeLeft} secondes</h3>
 }
 
 GameTimer.propTypes = {

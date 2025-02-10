@@ -19,7 +19,7 @@ const Layout = ({ children }) => {
 
   return (
     <>
-      {location.pathname !== '/' && <Header />}
+      {location.pathname !== '/' && location.pathname !== '/menu' && <Header />}
       <main>{children}</main>
     </>
   )

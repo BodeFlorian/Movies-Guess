@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import GameTimer from '../../components/GameTimer'
 import MovieList from '../../components/MovieList'
 import useUserStore from '../../store/userStore'
 import useMoviesStore from '../../store/moviesStore'
@@ -170,8 +169,10 @@ const Game = () => {
   if (loading) return <p>Chargement...</p>
 
   return (
-    <div className="game-container">
-      <GameTimer gameEndTime={gameEndTime} />
+    <div
+      className="game-container"
+      style={{ margin: '2rem 0', paddingBottom: '2rem' }}
+    >
       <MovieList movies={selectedMovies} />
     </div>
   )

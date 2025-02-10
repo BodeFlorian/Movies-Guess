@@ -1,26 +1,20 @@
+@use '../../utils/style/variables' as *;
+@use '../../utils/style/mixins' as *;
+
 .header {
   display: flex;
   justify-content: space-between;
-  padding: 32px;
+  align-items: center;
+  padding: 1.5rem;
   height: min-content;
-  background-color: #101615;
-  font-size: 24px;
+  background-color: darken($background-color, 2%);
+  font-size: 1.25rem;
   font-weight: bold;
-  margin-bottom: 24px;
   position: sticky;
   inset: 0;
   z-index: 1000;
 
   &__button {
-    cursor: pointer;
-    background-color: transparent;
-    border: none;
-    margin: 0;
-    padding: 0;
-
-    img {
-      filter: invert(95%) sepia(8%) saturate(22%) hue-rotate(59deg)
-        brightness(105%) contrast(106%);
-    }
+    @include button(0.5rem 2rem, 0.2rem);
   }
 }

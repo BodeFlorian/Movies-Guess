@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useUserStore from '../../store/userStore.js'
 
+import './index.scss'
+
 const Index = () => {
   const [error, setError] = useState('')
   const [inputValue, setInputValue] = useState('')
@@ -30,19 +32,28 @@ const Index = () => {
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className="home">
+      <div className="home__presentation">
+        <h1 className="home__title">Movie Guess</h1>
+        <p className="home__subtitle">
+          Testez vos connaissances cinématographiques
+        </p>
+      </div>
+
+      <form className="home__form" onSubmit={handleSubmit}>
         <input
+          className="home__input"
           type="text"
-          placeholder="Entrez votre prénom"
+          placeholder="Choisissez votre pseudo"
           value={inputValue}
           onChange={handleInputChange}
           aria-label="Votre prénom"
         />
-        <button type="submit">Valider</button>
+        {error && <p className="home__error">{error}</p>}
+        <button className="home__button" type="submit">
+          Jouer
+        </button>
       </form>
-      {pseudo ? <p>Pseudo actuel: {pseudo}</p> : <p>Aucun pseudo sauvegardé</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   )
 }

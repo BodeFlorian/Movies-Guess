@@ -1,14 +1,28 @@
-@use './reset.scss';
+@use './reset';
+@use './fonts';
+@use './variables' as *;
+
+html {
+  min-height: 100vh;
+  height: 100%;
+}
 
 body {
-  background-color: #050b0a;
-  color: #deeeec;
+  background-color: $background-color;
+  color: $text-color;
+  font-family: 'Lato', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 main {
-  padding-inline: 80px;
+  padding-inline: 4rem;
 
   @media screen and (max-width: 768px) {
-    padding-inline: 32px;
+    padding-inline: 2rem;
   }
+}
+
+::-webkit-scrollbar {
+  display: none;
 }

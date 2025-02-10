@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Modal from '../../components/Modal'
-import GameTimer from '../../components/GameTimer'
 import MovieList from '../../components/MovieList'
 import useUserStore from '../../store/userStore'
 import useGameStore from '../../store/gameStore'
@@ -13,8 +12,7 @@ const GameResult = () => {
   const navigate = useNavigate()
   const { pseudo } = useUserStore()
 
-  const { isGameStarted, guess, gameEndTime, currentGame, resetGame } =
-    useGameStore()
+  const { isGameStarted, guess, currentGame, resetGame } = useGameStore()
 
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [selectedMovies, setSelectedMovies] = useState([])
@@ -63,7 +61,10 @@ const GameResult = () => {
   }
 
   return (
-    <div className="game-container">
+    <div
+      className="game-container"
+      style={{ margin: '2rem 0', paddingBottom: '2rem' }}
+    >
       {isModalOpen ? (
         <Modal>
           <div className="results">
@@ -95,9 +96,7 @@ const GameResult = () => {
           </div>
         </Modal>
       ) : null}
-      <GameTimer gameEndTime={gameEndTime} />
       <MovieList movies={selectedMovies} />
-      <button onClick={handleBackToMenu}>Retour au menu</button>
     </div>
   )
 }
