@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import MovieCard from '../MovieCard'
 import './index.scss'
 
@@ -17,6 +18,15 @@ const MovieList = ({ movies }) => {
       ))}
     </ul>
   )
+}
+
+MovieList.propTypes = {
+  movies: PropTypes.arrayOf(
+    PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      backdrops: PropTypes.array.isRequired,
+    }),
+  ).isRequired,
 }
 
 export default MovieList
