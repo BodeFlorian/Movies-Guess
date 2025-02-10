@@ -8,7 +8,6 @@ Bienvenue dans le projet **Movie Guess**, une application React pour deviner des
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Technologies utilisées](#technologies-utilisées)
-- [Licence](#licence)
 
 ---
 
@@ -70,14 +69,6 @@ Ce projet est construit avec les technologies suivantes :
 - **[vite-plugin-compression](https://www.npmjs.com/package/vite-plugin-compression)** - Pour optimiser les assets en production.
 
 L'API **[The Movie Database (TMDb)](https://www.themoviedb.org/)** est utilisée pour récupérer les informations sur les films.
-
----
-
-## 📜 License
-
-Ce projet est sous licence **MIT**. Vous êtes libre de l'utiliser, le modifier et le distribuer sous les conditions de cette licence.
-
-Consultez le fichier [`LICENSE`](./LICENSE) pour plus de détails.
 
 ---
 
