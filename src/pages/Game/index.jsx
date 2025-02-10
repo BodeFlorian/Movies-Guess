@@ -153,7 +153,7 @@ const Game = () => {
     }, 1000)
 
     return () => clearInterval(gameTimer)
-  }, [gameEndTime, resetGame])
+  }, [gameEndTime, resetGame, navigate])
 
   // Empêche le rendu si l'utilisateur est redirigé
   if (!pseudo) return null

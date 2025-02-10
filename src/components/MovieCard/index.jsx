@@ -39,7 +39,7 @@ const MovieCard = ({ title, backdrops }) => {
       title.toLowerCase(),
     )
 
-    if (similarityScore > 0.75) {
+    if (similarityScore > 0.65) {
       updateGuess(title)
     }
   }
