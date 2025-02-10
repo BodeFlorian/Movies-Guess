@@ -29,7 +29,6 @@ const GameResult = () => {
   const restoreGame = useCallback(() => {
     if (currentGame.length > 0) {
       setSelectedMovies(currentGame)
-      console.log('Les données du jeu ont été restaurées')
     }
   }, [currentGame])
 
@@ -37,6 +36,7 @@ const GameResult = () => {
     if (currentGame.length > 0 && selectedMovies.length === 0) {
       restoreGame()
       setLoading(false)
+      console.log('Affichage des résultats...')
       return
     }
   }, [currentGame, selectedMovies.length, restoreGame])
