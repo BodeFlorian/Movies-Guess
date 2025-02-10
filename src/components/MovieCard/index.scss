@@ -63,6 +63,13 @@
     z-index: 1;
     color: #deeeec;
 
+    img {
+      width: 64px;
+      height: 64px;
+      filter: invert(95%) sepia(8%) saturate(22%) hue-rotate(59deg)
+        brightness(105%) contrast(106%);
+    }
+
     &--left {
       background: linear-gradient(
         90deg,

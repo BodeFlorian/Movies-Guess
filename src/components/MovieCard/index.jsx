@@ -55,7 +55,7 @@ const MovieCard = ({ title, backdrops }) => {
           onClick={handlePrevClick}
           name="prev-image"
         >
-          {leftArrow}
+          <img src={leftArrow} alt="Left arrow" />
         </button>
         <div className="movieCard__backdrops">
           {backdrops.map((backdrop, index) => (
@@ -73,7 +73,7 @@ const MovieCard = ({ title, backdrops }) => {
           onClick={handleNextClick}
           name="next-image"
         >
-          {rightArrow}
+          <img src={rightArrow} alt="Right arrow" />
         </button>
       </div>
 

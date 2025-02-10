@@ -10,4 +10,17 @@
   position: sticky;
   inset: 0;
   z-index: 1000;
+
+  &__button {
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+
+    img {
+      filter: invert(95%) sepia(8%) saturate(22%) hue-rotate(59deg)
+        brightness(105%) contrast(106%);
+    }
+  }
 }
