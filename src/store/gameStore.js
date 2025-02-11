@@ -50,6 +50,16 @@ const useGameStore = create((set, get) => ({
     set({ gameEndTime: newTime })
   },
 
+  // Ajout de temps bonus
+  addBonusTime: () => {
+    set((state) => {
+      const newGameEndTime = (state.gameEndTime || Date.now()) + 2000;
+      localStorage.setItem('gameEndTime', newGameEndTime);
+      return { gameEndTime: newGameEndTime };
+    });
+  },
+
+
   // Définition du jeu en cours
   setCurrentGame: (movies, gameEndTime) => {
     const newGame = { movies, gameEndTime }
@@ -69,7 +79,7 @@ const useGameStore = create((set, get) => ({
     set((state) => {
       const updatedMovies = state.currentGame.movies.map((movie) =>
         movie.title === title
-          ? { ...movie, guess: { isGuess: true, guessBy: guessedBy } }
+          ? { ...movie, guess: { isGuess: true, guessBy: guessedBy }}
           : movie,
       )
 
@@ -78,6 +88,9 @@ const useGameStore = create((set, get) => ({
         movies: updatedMovies,
         gameEndTime: state.currentGame.gameEndTime,
       }
+
+      set({ currentGame: updatedGame, guess: newGuess }); //MAJ du state avant d'ajouter le temps bonus
+      get().addBonusTime();
 
       // Sauvegarde dans localStorage
       localStorage.setItem('currentGame', JSON.stringify(updatedGame))
