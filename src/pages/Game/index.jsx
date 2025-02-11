@@ -127,15 +127,13 @@ const Game = () => {
 
   /** Surveille la fin du jeu et réinitialise la partie si le temps est écoulé */
   useEffect(() => {
-    const handleGameEnd = () => {
-      endGame()
-      console.log('Le jeu est terminé')
-      navigate('/game/results')
-    }
+    if (!gameEndTime) return
 
     const gameTimer = setInterval(() => {
       if (Date.now() >= gameEndTime) {
-        handleGameEnd()
+        endGame()
+        console.log('Le jeu est terminé')
+        navigate('/game/results')
       }
     }, 1000)
 
