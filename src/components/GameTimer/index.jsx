@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 
 const GameTimer = () => {
   const navigate = useNavigate()
-  const { isGameStarted, gameEndTime, resetGame } = useGameStore()
+  const { isGameStarted, gameEndTime, resetGame, currentGame } = useGameStore()
   const [timeLeft, setTimeLeft] = useState(0)
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const GameTimer = () => {
     navigate('/menu')
   }
 
-  if (!gameEndTime && !isGameStarted) {
+  if (gameEndTime && !isGameStarted && currentGame.gameEndTime) {
     return (
       <button
         className="header__button header__button-menu"

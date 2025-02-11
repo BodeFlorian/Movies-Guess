@@ -12,7 +12,8 @@ const GameResult = () => {
   const navigate = useNavigate()
   const { pseudo } = useUserStore()
 
-  const { isGameStarted, guess, currentGame, resetGame } = useGameStore()
+  const { isGameStarted, guess, currentGame, resetGame, setGameEndTime } =
+    useGameStore()
 
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [selectedMovies, setSelectedMovies] = useState([])
@@ -31,19 +32,21 @@ const GameResult = () => {
   }, [isGameStarted, navigate])
 
   const restoreGame = useCallback(() => {
-    if (currentGame.length > 0) {
-      setSelectedMovies(currentGame)
+    if (currentGame.movies.length > 0) {
+      setSelectedMovies(currentGame.movies)
+      setGameEndTime(currentGame.gameEndTime)
+      console.log('Les données du jeu ont été restaurées')
     }
-  }, [currentGame])
+  }, [currentGame, setGameEndTime])
 
   useEffect(() => {
-    if (currentGame.length > 0 && selectedMovies.length === 0) {
+    if (currentGame.movies.length > 0 && selectedMovies.length === 0) {
       restoreGame()
       setLoading(false)
       console.log('Affichage des résultats...')
       return
     }
-  }, [currentGame, selectedMovies.length, restoreGame])
+  }, [currentGame.movies.length, selectedMovies.length, restoreGame])
 
   // Empêche le rendu si l'utilisateur est redirigé
   if (!pseudo) return null

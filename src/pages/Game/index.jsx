@@ -23,31 +23,25 @@ const Game = () => {
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)
 
-  /**
-   * Redirige l'utilisateur vers la page d'accueil s'il n'a pas de pseudo défini.
-   */
+  /** Redirige l'utilisateur vers la page d'accueil s'il n'a pas de pseudo défini */
   useEffect(() => {
     if (!pseudo) {
       navigate('/')
     }
   }, [pseudo, navigate])
 
-  /**
-   * Redirige l'utilisateur vers la page des résultats si la partie est terminée.
-   * Redirige l'utilisateur vers la page du menu si aucune partie n'est en cours.
-   */
+  /** Redirige l'utilisateur selon l'état de la partie */
   useEffect(() => {
-    if (!isGameStarted && currentGame.length > 0) {
-      navigate('/game/results')
-    } else if (!isGameStarted && currentGame.length === 0) {
-      navigate('/menu')
+    if (!isGameStarted) {
+      if (currentGame.movies.length > 0) {
+        navigate('/game/results')
+      } else {
+        navigate('/menu')
+      }
     }
-  }, [isGameStarted, currentGame, navigate])
+  }, [isGameStarted, currentGame.movies, navigate])
 
-  /**
-   * Récupère la liste des films depuis l'API et les stocke dans le store.
-   * Cette fonction est appelée uniquement si la liste des films est vide.
-   */
+  /** Récupère les films depuis l'API si nécessaire */
   const initMovies = useCallback(async () => {
     if (movies.length === 0) {
       try {
@@ -59,103 +53,85 @@ const Game = () => {
     }
   }, [movies.length, setMovies])
 
-  /**
-   * Initialise une nouvelle partie en sélectionnant un ensemble aléatoire de films.
-   * Définit également l'heure de fin du jeu en fonction de la durée définie.
-   */
+  /** Initialise une nouvelle partie */
   const initGame = useCallback(() => {
     if (movies.length === 0) {
       console.error('Aucun film disponible pour initialiser le jeu')
       return
     }
 
-    // Sélectionne aléatoirement un ensemble de films et initialise leur état
     const randomMovies = selectRandomMovies(movies, TOTAL_FILMS).map(
       (movie) => ({ ...movie, guess: { isGuess: false, guessBy: null } }),
     )
     setSelectedMovies(randomMovies)
 
-    // Définit l'heure de fin du jeu
-    const newGameEndTime = Date.now() + GAME_DURATION
-    setGameEndTime(newGameEndTime)
+    setGameEndTime(Date.now() + GAME_DURATION)
   }, [movies, setGameEndTime])
 
-  /**
-   * Sauvegarde la partie en cours dans le store.
-   */
+  /** Sauvegarde la partie en cours */
   const saveGame = useCallback(() => {
-    setCurrentGame(selectedMovies)
+    setCurrentGame(selectedMovies, gameEndTime)
     console.log('Sauvegarde réussie')
-  }, [selectedMovies, setCurrentGame])
+  }, [selectedMovies, setCurrentGame, gameEndTime])
 
-  /**
-   * Restaure une partie en cours si des données existent dans le store.
-   */
+  /** Restaure une partie en cours si des données existent */
   const restoreGame = useCallback(() => {
-    if (currentGame.length > 0) {
-      setSelectedMovies(currentGame)
+    if (currentGame?.movies?.length > 0) {
+      setSelectedMovies(currentGame.movies)
+      setGameEndTime(currentGame.gameEndTime)
       console.log('Les données du jeu ont été restaurées')
     }
-  }, [currentGame])
+  }, [currentGame, setGameEndTime])
 
-  /**
-   * Gère le cycle de vie du jeu :
-   * - Restaure une partie en cours si nécessaire.
-   * - Charge les films si aucun n'est disponible.
-   * - Initialise un nouveau jeu si aucune partie n'est en cours.
-   * - Sauvegarde le jeu après l'initialisation.
-   */
+  /** Gestion du cycle de vie du jeu */
   useEffect(() => {
-    if (currentGame.length > 0 && selectedMovies.length === 0) {
-      restoreGame()
-      setLoading(false)
-      return
+    const initializeGame = async () => {
+      if (currentGame.movies.length > 0 && selectedMovies.length === 0) {
+        restoreGame()
+        setLoading(false)
+        return
+      }
+
+      if (movies.length === 0) {
+        console.log('Chargement des films...')
+        await initMovies()
+      }
+
+      if (
+        movies.length > 0 &&
+        selectedMovies.length === 0 &&
+        currentGame.movies.length === 0
+      ) {
+        initGame()
+      }
     }
 
-    if (movies.length === 0) {
-      console.log('Chargement des films...')
-      initMovies()
-    }
+    initializeGame()
+  }, [
+    movies.length,
+    selectedMovies.length,
+    currentGame.movies,
+    initMovies,
+    initGame,
+    restoreGame,
+  ])
 
-    if (
-      movies.length > 0 &&
-      selectedMovies.length === 0 &&
-      currentGame.length === 0
-    ) {
-      console.log('Chargement des films...')
-      initGame()
-    }
-
-    if (
-      movies.length > 0 &&
-      selectedMovies.length > 0 &&
-      currentGame.length === 0
-    ) {
+  /** Appelle saveGame() uniquement quand selectedMovies est mis à jour */
+  useEffect(() => {
+    if (selectedMovies.length > 0 && currentGame.movies.length === 0) {
       saveGame()
       console.log('Démarrage du jeu...')
       setLoading(false)
     }
-  }, [
-    movies.length,
-    selectedMovies.length,
-    currentGame.length,
-    initMovies,
-    initGame,
-    saveGame,
-    restoreGame,
-  ])
+  }, [selectedMovies, saveGame, currentGame.movies])
 
-  /**
-   * Surveille la fin du jeu et réinitialise la partie si le temps est écoulé.
-   */
+  /** Surveille la fin du jeu et réinitialise la partie si le temps est écoulé */
   useEffect(() => {
     const handleGameEnd = () => {
       endGame()
       console.log('Le jeu est terminé')
       navigate('/game/results')
     }
-
-    if (!gameEndTime) return
 
     const gameTimer = setInterval(() => {
       if (Date.now() >= gameEndTime) {

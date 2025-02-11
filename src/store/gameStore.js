@@ -14,9 +14,14 @@ const useGameStore = create((set, get) => ({
 
   currentGame: (() => {
     try {
-      return JSON.parse(localStorage.getItem('currentGame')) || []
+      return (
+        JSON.parse(localStorage.getItem('currentGame')) || {
+          movies: [],
+          gameEndTime: null,
+        }
+      )
     } catch {
-      return []
+      return { movies: [], gameEndTime: null }
     }
   })(),
 
@@ -46,38 +51,39 @@ const useGameStore = create((set, get) => ({
   },
 
   // Définition du jeu en cours
-  setCurrentGame: (newGame) => {
-    if (Array.isArray(newGame)) {
-      localStorage.setItem('currentGame', JSON.stringify(newGame))
-      set({ currentGame: newGame })
-    } else {
-      console.error(
-        'setCurrentGame: les données doivent être un tableau valide',
-      )
-    }
+  setCurrentGame: (movies, gameEndTime) => {
+    const newGame = { movies, gameEndTime }
+    localStorage.setItem('currentGame', JSON.stringify(newGame))
+    set({ currentGame: newGame })
   },
 
   // Récupère un film spécifique par son titre
   getMovie: (title) => {
-    return get().currentGame.find((movie) => movie.title === title) || null
+    return (
+      get().currentGame.movies?.find((movie) => movie.title === title) || null
+    )
   },
 
   // Mise à jour d'un film deviné et du score
   updateGuess: (title, guessedBy) => {
     set((state) => {
-      const updatedMovies = state.currentGame.map((movie) =>
+      const updatedMovies = state.currentGame.movies.map((movie) =>
         movie.title === title
           ? { ...movie, guess: { isGuess: true, guessBy: guessedBy } }
           : movie,
       )
 
       const newGuess = state.guess + 1
+      const updatedGame = {
+        movies: updatedMovies,
+        gameEndTime: state.currentGame.gameEndTime,
+      }
 
       // Sauvegarde dans localStorage
-      localStorage.setItem('currentGame', JSON.stringify(updatedMovies))
+      localStorage.setItem('currentGame', JSON.stringify(updatedGame))
       localStorage.setItem('guess', newGuess)
 
-      return { currentGame: updatedMovies, guess: newGuess }
+      return { currentGame: updatedGame, guess: newGuess }
     })
   },
 
@@ -91,7 +97,7 @@ const useGameStore = create((set, get) => ({
     set({
       guess: 0,
       gameEndTime: null,
-      currentGame: [],
+      currentGame: { movies: [], gameEndTime: null },
       isGameStarted: false,
     })
   },

@@ -7,7 +7,7 @@ import './index.scss'
 
 const Menu = () => {
   const { pseudo } = useUserStore()
-  const { startGame } = useGameStore()
+  const { startGame, resetGame } = useGameStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,6 +19,7 @@ const Menu = () => {
   if (!pseudo) return null
 
   const handleStartGame = () => {
+    resetGame()
     startGame()
     navigate('/game')
   }
