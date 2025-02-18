@@ -2,6 +2,8 @@
 
 Bienvenue dans le projet **Movie Guess**, une application React pour deviner des films à partir de leurs images, construite avec Vite et utilisant l'API TMDB (The Movie Database).
 
+[Découvrir le site web](https://movies-guess.netlify.app/) 
+
 ## Table des matières
 
 - [Prérequis](#prérequis)
