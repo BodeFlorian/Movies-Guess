@@ -34,7 +34,7 @@ const Index = () => {
   return (
     <div className="home">
       <div className="home__presentation">
-        <h1 className="home__title">Movie Guess</h1>
+        <h1 className="home__title">Movies Guess</h1>
         <p className="home__subtitle">
           Testez vos connaissances cinématographiques
         </p>
