@@ -144,7 +144,13 @@ const Game = () => {
   if (!pseudo) return null
 
   // Affiche un message de chargement pendant l'initialisation
-  if (loading) return <p>Chargement...</p>
+  if (loading)
+    return (
+      <p>
+        Chargement des films, cela peut prendre du temps lors de la 1ère
+        partie...
+      </p>
+    )
 
   return (
     <div
