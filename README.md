@@ -1,6 +1,6 @@
-# Movie Guess App
+# Movies Guess App
 
-Bienvenue dans le projet **Movie Guess**, une application React pour deviner des films à partir de leurs images, construite avec Vite et utilisant l'API TMDB (The Movie Database).
+Bienvenue dans le projet **Movies Guess**, une application React pour deviner des films à partir de leurs images, construite avec Vite et utilisant l'API TMDB (The Movie Database).
 
 [Découvrir le site web](https://movies-guess.netlify.app/) 
 
@@ -71,7 +71,3 @@ Ce projet est construit avec les technologies suivantes :
 - **[vite-plugin-compression](https://www.npmjs.com/package/vite-plugin-compression)** - Pour optimiser les assets en production.
 
 L'API **[The Movie Database (TMDb)](https://www.themoviedb.org/)** est utilisée pour récupérer les informations sur les films.
-
----
-
-© 2024 - Movie Guess. Tous droits réservés.
