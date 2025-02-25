@@ -9,7 +9,7 @@ import rightArrow from '../../assets/icons/right-arrow.svg'
 import './MovieCard.scss'
 
 const MovieCard = ({ title, backdrops }) => {
-  const { pseudo } = useUser()
+  const { user } = useUser()
   const { isGameStarted, getMovie, updateGuess } = useGame()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState('')
@@ -43,7 +43,7 @@ const MovieCard = ({ title, backdrops }) => {
     )
 
     if (similarityScore > 0.65) {
-      updateGuess(title, pseudo)
+      updateGuess(title, user)
     }
   }
 
