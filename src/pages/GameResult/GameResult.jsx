@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Modal from '../../components/Modal/Modal'
 import MovieList from '../../components/MovieList/MovieList'
-import { useUser } from '../../contexts/UserContext'
 import { useGame } from '../../contexts/GameContext'
 import { TOTAL_FILMS } from '../../utils/constants'
 
@@ -10,7 +9,6 @@ import './GameResult.scss'
 
 const GameResult = () => {
   const navigate = useNavigate()
-  const { pseudo } = useUser()
 
   const { isGameStarted, guess, currentGame, resetGame, setGameEndTime } =
     useGame()
@@ -18,12 +16,6 @@ const GameResult = () => {
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!pseudo) {
-      navigate('/')
-    }
-  }, [pseudo, navigate])
 
   useEffect(() => {
     if (isGameStarted) {
@@ -47,9 +39,6 @@ const GameResult = () => {
       return
     }
   }, [currentGame.movies.length, selectedMovies.length, restoreGame])
-
-  // Empêche le rendu si l'utilisateur est redirigé
-  if (!pseudo) return null
 
   // Affiche un message de chargement pendant l'initialisation
   if (loading) return <p>Chargement...</p>

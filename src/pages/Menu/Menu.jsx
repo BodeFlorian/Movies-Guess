@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../../contexts/UserContext'
 import { useGame } from '../../contexts/GameContext'
@@ -9,14 +8,6 @@ const Menu = () => {
   const { pseudo } = useUser()
   const { startGame, resetGame } = useGame()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    if (!pseudo) {
-      navigate('/')
-    }
-  }, [pseudo, navigate])
-
-  if (!pseudo) return null
 
   const handleStartGame = () => {
     resetGame()

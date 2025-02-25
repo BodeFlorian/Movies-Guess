@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MovieList from '../../components/MovieList/MovieList'
-import { useUser } from '../../contexts/UserContext'
 import { useMovies } from '../../contexts/MoviesContext'
 import { useGame } from '../../contexts/GameContext'
 import { getMovies, selectRandomMovies } from '../../services/movieService'
@@ -9,7 +8,6 @@ import { GAME_DURATION, TOTAL_FILMS } from '../../utils/constants'
 
 const Game = () => {
   const navigate = useNavigate()
-  const { pseudo } = useUser()
   const { movies, setMovies } = useMovies()
   const {
     isGameStarted,
@@ -22,13 +20,6 @@ const Game = () => {
 
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)
-
-  /** Redirige l'utilisateur vers la page d'accueil s'il n'a pas de pseudo défini */
-  useEffect(() => {
-    if (!pseudo) {
-      navigate('/')
-    }
-  }, [pseudo, navigate])
 
   /** Redirige l'utilisateur selon l'état de la partie */
   useEffect(() => {
@@ -139,9 +130,6 @@ const Game = () => {
 
     return () => clearInterval(gameTimer)
   }, [gameEndTime, endGame, navigate])
-
-  // Empêche le rendu si l'utilisateur est redirigé
-  if (!pseudo) return null
 
   // Affiche un message de chargement pendant l'initialisation
   if (loading)
