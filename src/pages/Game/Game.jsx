@@ -1,27 +1,31 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import MovieList from '../../components/MovieList/MovieList'
-import { useMovies } from '../../contexts/MoviesContext'
 import { useGame } from '../../contexts/GameContext'
-import { getMovies, selectRandomMovies } from '../../services/movieService'
-import { GAME_DURATION, TOTAL_FILMS } from '../../utils/constants'
+import { useMovies } from '../../contexts/MoviesContext'
+import MovieList from '../../components/MovieList/MovieList'
+import { getMovies } from '../../services/movieService'
 
 const Game = () => {
   const navigate = useNavigate()
   const { movies, setMovies } = useMovies()
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
   const {
     isGameStarted,
-    gameEndTime,
-    setGameEndTime,
-    setCurrentGame,
     currentGame,
+    gameEndTime,
+    selectedMovies,
+    loadingGame,
+    setLoadingGame,
+    initializeNewGame,
+    restoreGame,
     endGame,
   } = useGame()
 
-  const [selectedMovies, setSelectedMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  /** Redirige l'utilisateur selon l'état de la partie */
+  /**
+   * Redirige l'utilisateur selon l'état de la partie
+   */
   useEffect(() => {
     if (!isGameStarted) {
       if (currentGame.movies.length > 0) {
@@ -32,114 +36,134 @@ const Game = () => {
     }
   }, [isGameStarted, currentGame.movies, navigate])
 
-  /** Récupère les films depuis l'API si nécessaire */
+  /**
+   * Récupère les films depuis l'API si nécessaire
+   * @returns {Promise<Array>} - Liste des films récupérés ou depuis le cache
+   */
   const initMovies = useCallback(async () => {
-    if (movies.length === 0) {
-      try {
-        const newMovies = await getMovies()
-        setMovies(newMovies)
-      } catch (error) {
-        console.error('Erreur lors de la récupération des films:', error)
+    // Si nous avons déjà des films en cache, les utiliser
+    if (movies.length > 0) {
+      return movies
+    }
+
+    try {
+      console.log('Chargement des films...')
+      setIsLoading(true)
+
+      // Récupération des films depuis l'API
+      const newMovies = await getMovies()
+
+      // Mise à jour du contexte et du localStorage
+      setMovies(newMovies)
+      return newMovies
+    } catch (error) {
+      console.error('Erreur lors de la récupération des films:', error)
+      setError('Impossible de charger les films. Veuillez réessayer.')
+      return []
+    } finally {
+      setIsLoading(false)
+    }
+  }, [movies, setMovies])
+
+  /**
+   * Initialise le jeu (nouvelle partie ou restaure une partie existante)
+   */
+  const initializeGame = useCallback(async () => {
+    setLoadingGame(true)
+
+    try {
+      // Tente de restaurer une partie en cours si elle existe
+      if (currentGame.movies.length > 0) {
+        const restored = restoreGame()
+        if (restored) {
+          setIsLoading(false)
+          setLoadingGame(false)
+          return
+        }
       }
+
+      // Chargement des films et initialisation d'une nouvelle partie
+      const availableMovies = await initMovies()
+      if (availableMovies.length > 0) {
+        initializeNewGame(availableMovies)
+      } else {
+        setError('Aucun film disponible pour commencer une partie.')
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'initialisation du jeu:", error)
+      setError("Une erreur est survenue lors de l'initialisation du jeu.")
+    } finally {
+      setLoadingGame(false)
     }
-  }, [movies.length, setMovies])
+  }, [initMovies, initializeNewGame, restoreGame, currentGame, setLoadingGame])
 
-  /** Initialise une nouvelle partie */
-  const initGame = useCallback(() => {
-    if (movies.length === 0) {
-      console.error('Aucun film disponible pour initialiser le jeu')
-      return
-    }
-
-    const randomMovies = selectRandomMovies(movies, TOTAL_FILMS).map(
-      (movie) => ({ ...movie, guess: { isGuess: false, guessBy: null } }),
-    )
-    setSelectedMovies(randomMovies)
-
-    setGameEndTime(Date.now() + GAME_DURATION)
-  }, [movies, setGameEndTime])
-
-  /** Sauvegarde la partie en cours */
-  const saveGame = useCallback(() => {
-    setCurrentGame(selectedMovies, gameEndTime)
-    console.log('Sauvegarde réussie')
-  }, [selectedMovies, setCurrentGame, gameEndTime])
-
-  /** Restaure une partie en cours si des données existent */
-  const restoreGame = useCallback(() => {
-    if (currentGame?.movies?.length > 0) {
-      setSelectedMovies(currentGame.movies)
-      setGameEndTime(currentGame.gameEndTime)
-      console.log('Les données du jeu ont été restaurées')
-    }
-  }, [currentGame, setGameEndTime])
-
-  /** Gestion du cycle de vie du jeu */
+  /**
+   * Initialise le jeu au chargement du composant
+   */
   useEffect(() => {
-    const initializeGame = async () => {
-      if (currentGame.movies.length > 0 && selectedMovies.length === 0) {
-        restoreGame()
-        setLoading(false)
-        return
-      }
-
-      if (movies.length === 0) {
-        console.log('Chargement des films...')
-        await initMovies()
-      }
-
-      if (
-        movies.length > 0 &&
-        selectedMovies.length === 0 &&
-        currentGame.movies.length === 0
-      ) {
-        initGame()
-      }
-    }
-
     initializeGame()
-  }, [
-    movies.length,
-    selectedMovies.length,
-    currentGame.movies,
-    initMovies,
-    initGame,
-    restoreGame,
-  ])
+  }, [initializeGame])
 
-  /** Appelle saveGame() uniquement quand selectedMovies est mis à jour */
-  useEffect(() => {
-    if (selectedMovies.length > 0 && currentGame.movies.length === 0) {
-      saveGame()
-      console.log('Démarrage du jeu...')
-      setLoading(false)
-    }
-  }, [selectedMovies, saveGame, currentGame.movies])
-
-  /** Surveille la fin du jeu et réinitialise la partie si le temps est écoulé */
+  /**
+   * Surveille la fin du jeu et réinitialise la partie si le temps est écoulé
+   */
   useEffect(() => {
     if (!gameEndTime) return
 
+    // Calcul du temps restant pour optimiser les intervalles
+    const timeRemaining = gameEndTime - Date.now()
+
+    // Si le temps est déjà écoulé, terminer immédiatement
+    if (timeRemaining <= 0) {
+      endGame()
+      navigate('/game/results')
+      return
+    }
+
+    // Création d'un intervalle pour vérifier régulièrement le temps restant
     const gameTimer = setInterval(() => {
       if (Date.now() >= gameEndTime) {
         endGame()
         console.log('Le jeu est terminé')
         navigate('/game/results')
+        clearInterval(gameTimer) // Nettoyage explicite
       }
-    }, 1000)
+    }, 1000) // Vérification toutes les secondes
 
+    // Nettoyage de l'intervalle lors du démontage du composant
     return () => clearInterval(gameTimer)
   }, [gameEndTime, endGame, navigate])
 
-  // Affiche un message de chargement pendant l'initialisation
-  if (loading)
+  if (loadingGame || isLoading) {
     return (
-      <p>
-        Chargement des films, cela peut prendre du temps lors de la 1ère
-        partie...
-      </p>
+      <div className="loading-container">
+        <p>
+          Chargement des films, cela peut prendre du temps lors de la 1ère
+          partie...
+        </p>
+      </div>
     )
+  }
 
+  // Affichage des erreurs
+  if (error) {
+    return (
+      <div className="error-container">
+        <p className="error-message">{error}</p>
+        <button
+          onClick={() => {
+            setError(null)
+            initializeGame()
+          }}
+          className="retry-button"
+        >
+          Réessayer
+        </button>
+      </div>
+    )
+  }
+
+  // Affichage principal du jeu
   return (
     <div
       className="game-container"
