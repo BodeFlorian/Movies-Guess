@@ -4,19 +4,29 @@ import PropTypes from 'prop-types'
 const UserContext = createContext()
 
 export const UserProvider = ({ children }) => {
-  const [pseudo, setPseudo] = useState(localStorage.getItem('pseudo') || '')
+  const [user, setUser] = useState(localStorage.getItem('user') || '')
 
-  const setPseudoValue = (newPseudo) => {
-    setPseudo(newPseudo)
-    localStorage.setItem('pseudo', newPseudo)
+  const login = (pseudo) => {
+    setUser(pseudo)
+    localStorage.setItem('user', pseudo)
+  }
+
+  const logout = () => {
+    setUser('')
+    localStorage.removeItem('user')
   }
 
   const value = {
-    pseudo,
-    setPseudo: setPseudoValue,
+    user,
+    login,
+    logout,
   }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
+}
+
+UserProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 }
 
 export const useUser = () => {
@@ -25,8 +35,4 @@ export const useUser = () => {
     throw new Error('useUser must be used within a UserProvider')
   }
   return context
-}
-
-UserProvider.propTypes = {
-  children: PropTypes.node.isRequired,
 }

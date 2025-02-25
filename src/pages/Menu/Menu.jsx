@@ -5,7 +5,7 @@ import { useGame } from '../../contexts/GameContext'
 import './Menu.scss'
 
 const Menu = () => {
-  const { pseudo } = useUser()
+  const { user } = useUser()
   const { startGame, resetGame } = useGame()
   const navigate = useNavigate()
 
@@ -18,7 +18,7 @@ const Menu = () => {
   return (
     <div className="menu">
       <p className="menu__welcome">
-        Bienvenue, <span className="menu__welcome-pseudo">{pseudo}</span> !
+        Bienvenue, <span className="menu__welcome-pseudo">{user}</span> !
       </p>
       <div className="menu__actions">
         <button className="menu__button" onClick={handleStartGame}>

@@ -7,14 +7,14 @@ import './Home.scss'
 const Home = () => {
   const [error, setError] = useState('')
   const [inputValue, setInputValue] = useState('')
-  const { pseudo, setPseudo } = useUser()
+  const { user, login } = useUser()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (pseudo) {
+    if (user) {
       navigate('/menu')
     }
-  }, [pseudo, navigate])
+  }, [user, navigate])
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
@@ -26,7 +26,7 @@ const Home = () => {
     if (inputValue.trim().length < 2) {
       setError('Le pseudo doit contenir au moins 2 caractères.')
     } else {
-      setPseudo(inputValue)
+      login(inputValue)
       setInputValue('')
     }
   }

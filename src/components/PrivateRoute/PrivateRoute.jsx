@@ -7,9 +7,9 @@ import { useUser } from '../../contexts/UserContext'
  * Si non authentifié, redirige vers la page d'accueil
  */
 const PrivateRoute = ({ children }) => {
-  const { pseudo } = useUser()
+  const { user } = useUser()
 
-  if (!pseudo) {
+  if (!user) {
     return <Navigate to="/" replace />
   }
 
