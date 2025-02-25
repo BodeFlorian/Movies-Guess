@@ -1,13 +1,13 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useUserStore from '../../store/userStore'
-import useGameStore from '../../store/gameStore'
+import { useUser } from '../../contexts/UserContext'
+import { useGame } from '../../contexts/GameContext'
 
-import './index.scss'
+import './Menu.scss'
 
 const Menu = () => {
-  const { pseudo } = useUserStore()
-  const { startGame, resetGame } = useGameStore()
+  const { pseudo } = useUser()
+  const { startGame, resetGame } = useGame()
   const navigate = useNavigate()
 
   useEffect(() => {

@@ -1,16 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import MovieList from '../../components/MovieList'
-import useUserStore from '../../store/userStore'
-import useMoviesStore from '../../store/moviesStore'
-import useGameStore from '../../store/gameStore'
+import MovieList from '../../components/MovieList/MovieList'
+import { useUser } from '../../contexts/UserContext'
+import { useMovies } from '../../contexts/MoviesContext'
+import { useGame } from '../../contexts/GameContext'
 import { getMovies, selectRandomMovies } from '../../services/movieService'
 import { GAME_DURATION, TOTAL_FILMS } from '../../utils/constants'
 
 const Game = () => {
   const navigate = useNavigate()
-  const { pseudo } = useUserStore()
-  const { movies, setMovies } = useMoviesStore()
+  const { pseudo } = useUser()
+  const { movies, setMovies } = useMovies()
   const {
     isGameStarted,
     gameEndTime,
@@ -18,7 +18,7 @@ const Game = () => {
     setCurrentGame,
     currentGame,
     endGame,
-  } = useGameStore()
+  } = useGame()
 
   const [selectedMovies, setSelectedMovies] = useState([])
   const [loading, setLoading] = useState(true)

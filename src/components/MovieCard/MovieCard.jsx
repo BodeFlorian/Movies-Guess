@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import stringSimilarity from 'string-similarity'
-import useUserStore from '../../store/userStore.js'
-import useGameStore from '../../store/gameStore.js'
+import { useUser } from '../../contexts/UserContext'
+import { useGame } from '../../contexts/GameContext'
 
 import leftArrow from '../../assets/icons/left-arrow.svg'
 import rightArrow from '../../assets/icons/right-arrow.svg'
-import './index.scss'
+import './MovieCard.scss'
 
 const MovieCard = ({ title, backdrops }) => {
-  const { pseudo } = useUserStore()
-  const { isGameStarted, getMovie, updateGuess } = useGameStore()
+  const { pseudo } = useUser()
+  const { isGameStarted, getMovie, updateGuess } = useGame()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [input, setInput] = useState('')
 

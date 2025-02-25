@@ -1,4 +1,6 @@
-import './index.scss'
+import PropTypes from 'prop-types'
+import './Modal.scss'
+
 const Modal = ({ children }) => {
   return (
     <div className="modal">
@@ -8,3 +10,7 @@ const Modal = ({ children }) => {
 }
 
 export default Modal
+
+Modal.propTypes = {
+  children: PropTypes.node.isRequired,
+}

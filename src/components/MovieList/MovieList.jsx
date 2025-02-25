@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
-import MovieCard from '../MovieCard'
-import './index.scss'
+import MovieCard from '../MovieCard/MovieCard'
+import './MovieList.scss'
 
 const MovieList = ({ movies }) => {
   if (movies.length === 0) {

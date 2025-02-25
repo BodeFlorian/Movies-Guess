@@ -1,11 +1,11 @@
-import GameTimer from '../GameTimer'
-import useGameStore from '../../store/gameStore'
+import GameTimer from '../GameTimer/GameTimer'
+import { useGame } from '../../contexts/GameContext'
 import { TOTAL_FILMS } from '../../utils/constants'
 
-import './index.scss'
+import './Header.scss'
 
 const Header = () => {
-  const { guess } = useGameStore()
+  const { guess } = useGame()
 
   return (
     <header className="header">

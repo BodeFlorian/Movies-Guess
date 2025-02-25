@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useUserStore from '../../store/userStore.js'
+import { useUser } from '../../contexts/UserContext'
 
-import './index.scss'
+import './Home.scss'
 
-const Index = () => {
+const Home = () => {
   const [error, setError] = useState('')
   const [inputValue, setInputValue] = useState('')
-  const { pseudo, setPseudo } = useUserStore()
+  const { pseudo, setPseudo } = useUser()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -58,4 +58,4 @@ const Index = () => {
   )
 }
 
-export default Index
+export default Home

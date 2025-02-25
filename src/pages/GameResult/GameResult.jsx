@@ -1,19 +1,19 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Modal from '../../components/Modal'
-import MovieList from '../../components/MovieList'
-import useUserStore from '../../store/userStore'
-import useGameStore from '../../store/gameStore'
+import Modal from '../../components/Modal/Modal'
+import MovieList from '../../components/MovieList/MovieList'
+import { useUser } from '../../contexts/UserContext'
+import { useGame } from '../../contexts/GameContext'
 import { TOTAL_FILMS } from '../../utils/constants'
 
-import './index.scss'
+import './GameResult.scss'
 
 const GameResult = () => {
   const navigate = useNavigate()
-  const { pseudo } = useUserStore()
+  const { pseudo } = useUser()
 
   const { isGameStarted, guess, currentGame, resetGame, setGameEndTime } =
-    useGameStore()
+    useGame()
 
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [selectedMovies, setSelectedMovies] = useState([])

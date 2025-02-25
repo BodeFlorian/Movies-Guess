@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useGameStore from '../../store/gameStore'
+import { useGame } from '../../contexts/GameContext'
 import PropTypes from 'prop-types'
 
 const GameTimer = () => {
   const navigate = useNavigate()
-  const { isGameStarted, gameEndTime, resetGame, currentGame } = useGameStore()
+  const { isGameStarted, gameEndTime, resetGame, currentGame } = useGame()
   const [timeLeft, setTimeLeft] = useState(0)
 
   useEffect(() => {
