@@ -50,7 +50,11 @@ const Home = () => {
           aria-label="Votre prénom"
         />
         {error && <p className="home__error">{error}</p>}
-        <button className="home__button" type="submit">
+        <button
+          className="home__button"
+          type="submit"
+          disabled={inputValue.length < 2 ? true : false}
+        >
           Jouer
         </button>
       </form>

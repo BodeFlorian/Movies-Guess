@@ -10,4 +10,9 @@
   cursor: pointer;
   background-color: $primary-color;
   font-weight: bold;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
