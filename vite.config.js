@@ -4,6 +4,9 @@ import ViteCompression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: 'localhost',
+  },
   plugins: [
     react(),
     ViteCompression({
