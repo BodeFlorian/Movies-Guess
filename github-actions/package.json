@@ -1,0 +1,13 @@
+{
+  "name": "firebase-cleanup",
+  "version": "1.0.0",
+  "description": "Script pour nettoyer les ressources Firebase inutilisées",
+  "main": "cleanup.js",
+  "type": "module",
+  "scripts": {
+    "start": "node cleanup.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.8.0"
+  }
+}

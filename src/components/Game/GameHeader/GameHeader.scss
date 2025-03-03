@@ -1,0 +1,17 @@
+@use '../../../utils/style/variables' as *;
+
+.game {
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    height: min-content;
+    background-color: darken($background-color, 2%);
+    font-size: 1.25rem;
+    font-weight: bold;
+    position: sticky;
+    inset: 0;
+    z-index: 1000;
+  }
+}

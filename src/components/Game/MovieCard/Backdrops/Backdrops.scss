@@ -1,38 +1,6 @@
-@use '../../utils/style/variables' as *;
+@use '../../../../utils/style/variables' as *;
 
 .movieCard {
-  position: relative;
-  width: 100%;
-  padding: 2rem;
-  background-color: darken($background-color, 0.8%);
-  border: 2px solid rgba($secondary-color, 0.2);
-  overflow: hidden;
-  border-radius: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media screen and (max-width: 630px) {
-    padding: 1.25rem;
-  }
-
-  &__form {
-    width: 100%;
-    button {
-      display: none;
-    }
-  }
-
-  &__input {
-    width: 100%;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    background-color: transparent;
-    border: 2px solid rgba($secondary-color, 0.2);
-    color: $text-color;
-    font-size: 1.025rem;
-  }
-
   &__pagination {
     position: relative;
     width: 100%;
@@ -117,34 +85,5 @@
         );
       }
     }
-  }
-
-  &__guess {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-
-    &--true {
-      background-color: $good-text-color;
-      color: darken($good-text-color, 50%);
-    }
-
-    &--false {
-      background-color: $error-text-color;
-      color: darken($error-text-color, 50%);
-    }
-  }
-
-  &__user {
-    span {
-      font-weight: bold;
-    }
-  }
-
-  &__title {
-    font-weight: bold;
   }
 }

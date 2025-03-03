@@ -1,0 +1,90 @@
+@use '../../utils/style/variables' as *;
+@use '../../utils/style/mixins' as *;
+
+.lobby {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 0;
+
+  &-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  &-id {
+    background-color: rgba($secondary-color, 0.2);
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba($primary-color, 0.3);
+
+    span {
+      font-weight: bold;
+    }
+  }
+
+  &__players {
+    min-width: 50vw;
+    margin: 1.5rem 0;
+    background-color: rgba($secondary-color, 0.2);
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba($primary-color, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    &-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    &-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+
+  &__player {
+    background-color: $background-color;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: 5fr 1fr;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+
+    &-host {
+      &::after {
+        content: '👑';
+        margin-left: 0.5rem;
+      }
+    }
+
+    &-status {
+      background-color: $secondary-color;
+      padding: 0.25rem 1rem;
+      border-radius: 4px;
+      text-align: center;
+
+      &--ready {
+        background-color: rgba($primary-color, 0.5);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__button {
+    @include button(0.5rem 1rem, 4px);
+  }
+}

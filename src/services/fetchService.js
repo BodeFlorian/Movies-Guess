@@ -6,7 +6,15 @@ const defaultOptions = {
   },
 }
 
-const fetchUrl = async (url, options = {}) => {
+/**
+ * Fonction pour effectuer des requêtes fetch.
+ *
+ * @async
+ * @function fetchUrl
+ * @param {string} url - L'URL à laquelle faire la requête.
+ * @returns {Promise<Object>} Les données récupérées.
+ */
+export const fetchUrl = async (url, options = {}) => {
   const mergedOptions = {
     ...defaultOptions,
     ...options,
@@ -30,5 +38,3 @@ const fetchUrl = async (url, options = {}) => {
     return null
   }
 }
-
-export default fetchUrl

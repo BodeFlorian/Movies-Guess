@@ -3,8 +3,16 @@
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   row-gap: 16px;
   column-gap: 16px;
+  padding-inline: 4rem;
+  margin: 2rem 0;
+  padding-bottom: 2rem;
+
+  @media screen and (max-width: 768px) {
+    padding-inline: 2rem;
+  }
 
   @media screen and (max-width: 630px) {
+    padding-inline: 1rem;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
 }

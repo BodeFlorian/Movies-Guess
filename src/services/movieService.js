@@ -1,4 +1,4 @@
-import fetchUrl from '../utils/fetchUrl'
+import { fetchUrl } from './fetchService'
 
 /**
  * Récupère une liste de films populaires depuis l'API TMDB et retourne un tableau d'objets.

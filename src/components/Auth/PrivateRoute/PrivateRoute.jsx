@@ -1,9 +1,9 @@
 import { Navigate } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { useUser } from '../../contexts/UserContext'
+import { useUser } from '../../../contexts/UserContext'
 
 /**
- * Composant wrapper qui vérifie si l'utilisateur est authentifié
+ * Composant qui vérifie si l'utilisateur est authentifié
  * Si non authentifié, redirige vers la page d'accueil
  */
 const PrivateRoute = ({ children }) => {

@@ -1,0 +1,20 @@
+@use '../../../../utils/style/variables' as *;
+
+.movieCard {
+  &__form {
+    width: 100%;
+    button {
+      display: none;
+    }
+  }
+
+  &__input {
+    width: 100%;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    border: 2px solid rgba($secondary-color, 0.2);
+    color: $text-color;
+    font-size: 1.025rem;
+  }
+}

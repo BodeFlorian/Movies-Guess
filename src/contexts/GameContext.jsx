@@ -37,15 +37,25 @@ const setStoredItem = (key, value) => {
   }
 }
 
+const removeStoredItem = (key) => {
+  try {
+    localStorage.removeItem(key)
+    return true
+  } catch (error) {
+    console.error(
+      `Erreur lors de la suppression depuis localStorage (${key}):`,
+      error,
+    )
+    return false
+  }
+}
+
 export const GameProvider = ({ children }) => {
   const [isGameStarted, setIsGameStarted] = useState(() =>
     getStoredItem('isGameStarted', false),
   )
   const [guess, setGuess] = useState(() =>
     parseInt(localStorage.getItem('guess') || '0'),
-  )
-  const [gameEndTime, setGameEndTime] = useState(
-    () => parseInt(localStorage.getItem('gameEndTime') || '0') || null,
   )
   const [currentGame, setCurrentGame] = useState(() =>
     getStoredItem('currentGame', { movies: [], gameEndTime: null }),
@@ -67,10 +77,9 @@ export const GameProvider = ({ children }) => {
    */
   const endGame = useCallback(() => {
     setStoredItem('isGameStarted', false)
-    localStorage.removeItem('gameEndTime')
-    setGameEndTime(null)
+    setCurrentGame({ ...currentGame, gameEndTime: null })
     setIsGameStarted(false)
-  }, [])
+  }, [currentGame])
 
   /**
    * Définit le nombre de films trouvés par le joueur
@@ -80,25 +89,6 @@ export const GameProvider = ({ children }) => {
     localStorage.setItem('guess', newGuess)
     setGuess(newGuess)
   }, [])
-
-  /**
-   * Définit le temps de fin de jeu
-   * @param {number} newTime - Nouveau temps de fin de jeu
-   */
-  const setGameEndTimeValue = useCallback((newTime) => {
-    localStorage.setItem('gameEndTime', newTime)
-    setGameEndTime(newTime)
-  }, [])
-
-  /**
-   * Ajoute du temps bonus après une bonne réponse (2 secondes)
-   */
-  const addBonusTime = useCallback(() => {
-    const currentEndTime = gameEndTime || Date.now()
-    const newGameEndTime = currentEndTime + 2000
-    localStorage.setItem('gameEndTime', newGameEndTime)
-    setGameEndTime(newGameEndTime)
-  }, [gameEndTime])
 
   /**
    * Définit la partie actuelle
@@ -147,11 +137,8 @@ export const GameProvider = ({ children }) => {
       setGuess(newGuess)
       setStoredItem('currentGame', updatedGame)
       localStorage.setItem('guess', newGuess)
-
-      // Ajout de temps bonus
-      addBonusTime()
     },
-    [currentGame, guess, addBonusTime],
+    [currentGame, guess],
   )
 
   /**
@@ -159,13 +146,12 @@ export const GameProvider = ({ children }) => {
    */
   const resetGame = useCallback(() => {
     // Suppression des données du localStorage
-    const keysToRemove = ['guess', 'gameEndTime', 'currentGame']
-    keysToRemove.forEach((key) => localStorage.removeItem(key))
+    const keysToRemove = ['guess', 'currentGame']
+    keysToRemove.forEach((key) => removeStoredItem(key))
     setStoredItem('isGameStarted', false)
 
     // Réinitialisation des états
     setGuess(0)
-    setGameEndTime(null)
     setCurrentGame({ movies: [], gameEndTime: null })
     setIsGameStarted(false)
     setSelectedMovies([])
@@ -192,13 +178,12 @@ export const GameProvider = ({ children }) => {
       const newEndTime = Date.now() + GAME_DURATION
 
       // Mise à jour des états
-      setGameEndTimeValue(newEndTime)
       setSelectedMovies(randomMovies)
       setCurrentGameValue(randomMovies, newEndTime)
 
       return randomMovies
     },
-    [setGameEndTimeValue, setCurrentGameValue],
+    [setCurrentGameValue],
   )
 
   /**
@@ -208,12 +193,11 @@ export const GameProvider = ({ children }) => {
   const restoreGame = useCallback(() => {
     if (currentGame?.movies?.length > 0) {
       setSelectedMovies(currentGame.movies)
-      setGameEndTimeValue(currentGame.gameEndTime)
       console.log('Les données du jeu ont été restaurées')
       return true
     }
     return false
-  }, [currentGame, setGameEndTimeValue])
+  }, [currentGame])
 
   // Utilisation de useMemo pour éviter la recréation de l'objet de contexte à chaque rendu
   const contextValue = useMemo(
@@ -221,7 +205,7 @@ export const GameProvider = ({ children }) => {
       // États
       isGameStarted,
       guess,
-      gameEndTime,
+      gameEndTime: currentGame.gameEndTime,
       currentGame,
       loadingGame,
       selectedMovies,
@@ -241,18 +225,13 @@ export const GameProvider = ({ children }) => {
 
       // Setters
       setGuess: setGuessCount,
-      setGameEndTime: setGameEndTimeValue,
       setCurrentGame: setCurrentGameValue,
       setSelectedMovies,
       setLoadingGame,
-
-      // Gestion du temps
-      addBonusTime,
     }),
     [
       isGameStarted,
       guess,
-      gameEndTime,
       currentGame,
       loadingGame,
       selectedMovies,
@@ -264,9 +243,7 @@ export const GameProvider = ({ children }) => {
       initializeNewGame,
       restoreGame,
       setGuessCount,
-      setGameEndTimeValue,
       setCurrentGameValue,
-      addBonusTime,
     ],
   )
 

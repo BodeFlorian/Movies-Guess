@@ -1,0 +1,32 @@
+@use '../../../../utils/style/variables' as *;
+
+.movieCard {
+  &__guess {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    &--true {
+      background-color: $good-text-color;
+      color: darken($good-text-color, 50%);
+    }
+
+    &--false {
+      background-color: $error-text-color;
+      color: darken($error-text-color, 50%);
+    }
+  }
+
+  &__user {
+    span {
+      font-weight: bold;
+    }
+  }
+
+  &__title {
+    font-weight: bold;
+  }
+}

@@ -1,70 +1,71 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import Modal from '../../components/Modal/Modal'
-import MovieList from '../../components/MovieList/MovieList'
-import { useGame } from '../../contexts/GameContext'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import Modal from '../../components/Common/Modal/Modal'
+import MovieList from '../../components/Game/MovieList/MovieList'
+import Loading from '../../components/Common/Loading/Loading'
+import ErrorDisplay from '../../components/Common/ErrorDisplay/ErrorDisplay'
 import { TOTAL_FILMS } from '../../utils/constants'
+import useGameResults from '../../hooks/useGameResults'
 
 import './GameResult.scss'
 
+/**
+ * Page affichant les résultats du jeu
+ */
 const GameResult = () => {
   const navigate = useNavigate()
+  const { gameId } = useParams()
+  const location = useLocation()
 
-  const { isGameStarted, guess, currentGame, resetGame, setGameEndTime } =
-    useGame()
+  // Extraire l'ID du jeu de l'URL
+  const queryParams = new URLSearchParams(location.search)
+  const gameIdFromQuery = queryParams.get('gameId')
 
-  const [isModalOpen, setIsModalOpen] = useState(true)
-  const [selectedMovies, setSelectedMovies] = useState([])
-  const [loading, setLoading] = useState(true)
+  // Déterminer l'ID de jeu actif et si nous sommes en mode multijoueur
+  const effectiveGameId = gameId || gameIdFromQuery
+  const isMultiplayer = Boolean(effectiveGameId)
 
-  useEffect(() => {
-    if (isGameStarted) {
-      navigate('/game')
-    }
-  }, [isGameStarted, navigate])
+  const {
+    loading,
+    error,
+    score,
+    movies,
+    playerCount,
+    isModalOpen,
+    handleViewAnswers,
+    handleBackToMenu,
+    authorized,
+  } = useGameResults(isMultiplayer, effectiveGameId)
 
-  const restoreGame = useCallback(() => {
-    if (currentGame.movies.length > 0) {
-      setSelectedMovies(currentGame.movies)
-      setGameEndTime(currentGame.gameEndTime)
-      console.log('Les données du jeu ont été restaurées')
-    }
-  }, [currentGame, setGameEndTime])
-
-  useEffect(() => {
-    if (currentGame.movies.length > 0 && selectedMovies.length === 0) {
-      restoreGame()
-      setLoading(false)
-      console.log('Affichage des résultats...')
-      return
-    }
-  }, [currentGame.movies.length, selectedMovies.length, restoreGame])
-
-  // Affiche un message de chargement pendant l'initialisation
-  if (loading) return <p>Chargement...</p>
-
-  const handleViewAnswers = () => {
-    setIsModalOpen(false)
+  if (error) {
+    return <ErrorDisplay message={error} onBack={() => navigate('/')} />
   }
 
-  const handleBackToMenu = () => {
-    resetGame()
-    navigate('/menu')
+  if (loading && !authorized) {
+    return <Loading message="Vérification de l'accès aux résultats..." />
+  }
+
+  if (loading) {
+    return <Loading message="Chargement des résultats..." />
   }
 
   return (
-    <div
-      className="game-container"
-      style={{ margin: '2rem 0', paddingBottom: '2rem' }}
-    >
-      {isModalOpen ? (
+    <div className="game-result-container">
+      {isModalOpen && (
         <Modal>
           <div className="results">
             <h2 className="results__title">Vous avez terminé la partie</h2>
             <p className="results__score">
-              <span className="results__score-value">{`${guess}/${TOTAL_FILMS}`}</span>
+              <span className="results__score-value">{`${score}/${TOTAL_FILMS}`}</span>
               films trouvés
             </p>
+
+            {isMultiplayer && (
+              <div className="results__multiplayer-info">
+                <p>Partie multijoueur - ID: {effectiveGameId}</p>
+                <p>Nombre de joueurs: {playerCount}</p>
+              </div>
+            )}
+
             <menu className="results__menu">
               <li className="results__menu-item">
                 <button
@@ -87,8 +88,9 @@ const GameResult = () => {
             </menu>
           </div>
         </Modal>
-      ) : null}
-      <MovieList movies={selectedMovies} />
+      )}
+
+      <MovieList movies={movies} isResults={true} />
     </div>
   )
 }
