@@ -1,0 +1,32 @@
+name: Cleanup Firebase Resources
+
+on:
+  schedule:
+    # Exécuter toutes les 6 heures
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # Permet de déclencher manuellement le workflow depuis l'interface GitHub
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd github-actions
+          npm install firebase-admin
+
+      - name: Run cleanup script
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          cd github-actions
+          node cleanup.js
