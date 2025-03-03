@@ -3,6 +3,7 @@ import Modal from '../../components/Common/Modal/Modal'
 import MovieList from '../../components/Game/MovieList/MovieList'
 import Loading from '../../components/Common/Loading/Loading'
 import ErrorDisplay from '../../components/Common/ErrorDisplay/ErrorDisplay'
+import GameHeader from '../../components/Game/GameHeader/GameHeader'
 import { TOTAL_FILMS } from '../../utils/constants'
 import useGameResults from '../../hooks/useGameResults'
 
@@ -90,6 +91,14 @@ const GameResult = () => {
         </Modal>
       )}
 
+      <GameHeader
+        remainingTime={0}
+        isMultiplayer={isMultiplayer}
+        multiplayerData={null}
+        score={score}
+        showBackButton={true}
+        onBackToMenu={handleBackToMenu}
+      />
       <MovieList movies={movies} isResults={true} />
     </div>
   )
