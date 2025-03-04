@@ -22,12 +22,14 @@ const useMultiplayerGame = (gameId, movies) => {
   const [playersReady, setPlayersReady] = useState({})
   const [allPlayersReady, setAllPlayersReady] = useState(false)
   const [localGuesses, setLocalGuesses] = useState({})
+  const [gameStartProcessed, setGameStartProcessed] = useState(false)
 
   // Références
   const checkAllPlayersReadyTimeoutRef = useRef(null)
-  const lastReadyStateLogRef = useRef({})
+  const lastReadyStateLogRef = useRef(null)
   const checkStartedRef = useRef(false)
   const delayStartTimeout = useRef(null)
+  const markPlayerReadyRef = useRef(false)
 
   /**
    * Vérifie si tous les joueurs sont prêts
@@ -45,13 +47,16 @@ const useMultiplayerGame = (gameId, movies) => {
       playerIds.length > 0 &&
       playerIds.every((playerId) => playersReady[playerId] === true)
 
-    // Log uniquement si l'état a changé
+    // Log uniquement si l'état a changé significativement
     const readyStatesString = JSON.stringify(playersReady)
-    if (readyStatesString !== JSON.stringify(lastReadyStateLogRef.current)) {
+    const playerIdsString = JSON.stringify(playerIds)
+    const logKey = `${readyStatesString}-${allReady}-${playerIdsString}`
+
+    if (logKey !== lastReadyStateLogRef.current) {
       console.log(`État de préparation des joueurs:`, playersReady)
       console.log(`Tous les joueurs sont prêts: ${allReady ? 'Oui' : 'Non'}`)
       console.log(`Joueurs attendus: [${playerIds.join(', ')}]`)
-      lastReadyStateLogRef.current = JSON.parse(readyStatesString)
+      lastReadyStateLogRef.current = logKey
     }
 
     return allReady
@@ -167,11 +172,20 @@ const useMultiplayerGame = (gameId, movies) => {
   const markPlayerReady = useCallback(async () => {
     if (!gameId || !user) return
 
+    // Empêcher les appels multiples trop rapprochés
+    if (markPlayerReadyRef.current) return
+    markPlayerReadyRef.current = true
+
     try {
       console.log(`Marquage du joueur ${user.id || user} comme prêt`)
       await gameService.setPlayerReady(gameId, user.id || user, true)
     } catch (error) {
       console.error('Erreur lors du marquage du joueur comme prêt:', error)
+    } finally {
+      // Ajouter un délai avant d'autoriser un nouvel appel
+      setTimeout(() => {
+        markPlayerReadyRef.current = false
+      }, 2000)
     }
   }, [gameId, user])
 
@@ -190,9 +204,10 @@ const useMultiplayerGame = (gameId, movies) => {
 
       if (data.isStarted) {
         // Première fois qu'on détecte le démarrage
-        if (!gameStartTime || data.calculatedEndTime) {
+        if (!gameStartProcessed) {
           console.log('La partie a démarré, initialisation des états locaux')
           startGame()
+          setGameStartProcessed(true)
 
           if (data.calculatedEndTime) {
             console.log(
@@ -287,7 +302,6 @@ const useMultiplayerGame = (gameId, movies) => {
     },
     [
       gameId,
-      gameStartTime,
       navigate,
       setCurrentGame,
       setGuess,
@@ -296,6 +310,8 @@ const useMultiplayerGame = (gameId, movies) => {
       updateMovies,
       user,
       localGuesses,
+      gameStartProcessed,
+      gameStartTime,
     ],
   )
 
@@ -379,7 +395,7 @@ const useMultiplayerGame = (gameId, movies) => {
       (ready) => ready === true,
     ).length
 
-    if (gameData.isStarted && !gameStartTime) {
+    if (gameData.isStarted && !gameStartProcessed) {
       return 'Préparation de la partie...'
     }
 
@@ -388,7 +404,7 @@ const useMultiplayerGame = (gameId, movies) => {
     }
 
     return `En attente des joueurs : ${readyPlayers}/${totalPlayers} prêts`
-  }, [gameData, playersReady, gameStartTime, allPlayersReady])
+  }, [gameData, playersReady, gameStartProcessed, allPlayersReady])
 
   return {
     loading,

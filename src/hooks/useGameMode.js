@@ -22,12 +22,16 @@ const useGameMode = (gameId) => {
   const [gameInitialized, setGameInitialized] = useState(false)
   const [countdownStarted, setCountdownStarted] = useState(false)
 
+  // État pour éviter les logs en double
+  const [loadLogDisplayed, setLoadLogDisplayed] = useState(false)
+
   // Références pour éviter les re-rendus
   const gameEndedRef = useRef(false)
   const gameEndTimeRef = useRef(gameEndTime)
   const isGameStartedRef = useRef(isGameStarted)
   const countdownTimeoutRef = useRef(null)
   const lastRemainingTime = useRef(0)
+  const lastLoadingMessageRef = useRef('')
 
   // Mettre à jour les références quand les valeurs changent
   useEffect(() => {
@@ -135,12 +139,19 @@ const useGameMode = (gameId) => {
       setMoviesLoading(true)
 
       if (movies.length === 0) {
-        console.log("Chargement des films depuis l'API...")
+        if (!loadLogDisplayed) {
+          console.log("Chargement des films depuis l'API...")
+          setLoadLogDisplayed(true)
+        }
+
         const fetchedMovies = await getMovies()
         setMovies(fetchedMovies)
         console.log(`${fetchedMovies.length} films chargés`)
       } else {
-        console.log(`${movies.length} films déjà chargés`)
+        if (!loadLogDisplayed) {
+          console.log(`${movies.length} films déjà chargés`)
+          setLoadLogDisplayed(true)
+        }
       }
 
       setMoviesLoaded(true)
@@ -160,7 +171,14 @@ const useGameMode = (gameId) => {
         error: 'Impossible de charger les films. Veuillez rafraîchir la page.',
       }
     }
-  }, [isMultiplayer, movies.length, multiplayer, setMovies, moviesLoaded])
+  }, [
+    isMultiplayer,
+    movies.length,
+    multiplayer,
+    setMovies,
+    moviesLoaded,
+    loadLogDisplayed,
+  ])
 
   /**
    * Initialise le jeu en fonction du mode une fois les films chargés
@@ -212,15 +230,24 @@ const useGameMode = (gameId) => {
 
   // Message de chargement personnalisé
   const getLoadingMessage = useCallback(() => {
-    if (moviesLoading) return 'Chargement des films...'
+    let message
 
-    if (isGameStartedRef.current && !countdownStarted) {
-      return 'Préparation du jeu, la partie va commencer...'
+    if (moviesLoading) {
+      message = 'Chargement des films...'
+    } else if (isGameStartedRef.current && !countdownStarted) {
+      message = 'Préparation du jeu, la partie va commencer...'
+    } else {
+      message = isMultiplayer
+        ? multiplayer.getLoadingMessage()
+        : 'Initialisation de la partie...'
     }
 
-    return isMultiplayer
-      ? multiplayer.getLoadingMessage()
-      : 'Initialisation de la partie...'
+    // Ne logguer que si le message a changé
+    if (message !== lastLoadingMessageRef.current) {
+      lastLoadingMessageRef.current = message
+    }
+
+    return message
   }, [isMultiplayer, moviesLoading, multiplayer, countdownStarted])
 
   // Déterminer si on est prêt à afficher le jeu

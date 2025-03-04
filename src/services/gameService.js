@@ -425,10 +425,19 @@ const gameService = {
    */
   async setPlayerReady(gameId, playerId, isReady) {
     try {
+      // Vérifier si l'état a déjà été enregistré pour éviter logs répétitifs
+      const playerReadyRef = doc(db, 'games', gameId, 'playersReady', playerId)
+      const currentState = await getDoc(playerReadyRef)
+
+      // Si l'état est déjà identique, ne rien faire et ne pas logger
+      if (currentState.exists() && currentState.data().ready === isReady) {
+        return true
+      }
+
       console.log(
         `Tentative de marquer ${playerId} comme ${isReady ? 'prêt' : 'pas prêt'}`,
       )
-      const playerReadyRef = doc(db, 'games', gameId, 'playersReady', playerId)
+
       await setDoc(playerReadyRef, {
         ready: isReady,
         timestamp: serverTimestamp(),
@@ -500,6 +509,8 @@ const gameService = {
   subscribeToPlayersReady(gameId, callback) {
     const playersReadyRef = collection(db, 'games', gameId, 'playersReady')
     let lastReadyStates = null
+    let lastUpdateTime = 0
+    const throttleDelay = 500 // 500ms throttle
 
     return onSnapshot(
       playersReadyRef,
@@ -510,12 +521,23 @@ const gameService = {
         })
 
         // Ne déclencher le callback que si les états ont changé
-        if (JSON.stringify(readyStates) !== JSON.stringify(lastReadyStates)) {
-          console.log(
-            `Mise à jour des états de préparation: ${JSON.stringify(readyStates)}`,
-          )
-          lastReadyStates = readyStates
-          callback(readyStates)
+        const readyStatesString = JSON.stringify(readyStates)
+        if (readyStatesString !== JSON.stringify(lastReadyStates)) {
+          const now = Date.now()
+
+          // Limiter la fréquence des mises à jour de logs
+          if (now - lastUpdateTime > throttleDelay) {
+            console.log(
+              `Mise à jour des états de préparation: ${readyStatesString}`,
+            )
+            lastReadyStates = JSON.parse(readyStatesString) // Copie de l'objet
+            lastUpdateTime = now
+            callback(readyStates)
+          } else {
+            // Mettre à jour quand même l'état mais sans logs
+            lastReadyStates = JSON.parse(readyStatesString)
+            callback(readyStates)
+          }
         }
       },
       (error) => {
