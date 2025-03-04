@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGame } from '../../contexts/GameContext'
 
@@ -16,6 +16,7 @@ const Game = () => {
   const navigate = useNavigate()
   const { gameId } = useParams()
   const { isGameStarted, selectedMovies, loadingGame } = useGame()
+  const [isReady, setIsReady] = useState(false)
 
   // Utilisation de notre hook principal
   const {
@@ -28,6 +29,7 @@ const Game = () => {
     loadMovies,
     handleGuess,
     getLoadingMessage,
+    countdownStarted,
   } = useGameMode(gameId)
 
   // Chargement des films - une seule fois lors du montage du composant
@@ -36,7 +38,7 @@ const Game = () => {
       await loadMovies()
     }
     load()
-  }, []) // Intentionnellement vide pour ne s'exécuter qu'une fois
+  }, [loadMovies])
 
   // Redirection vers l'accueil si le jeu solo n'est pas correctement initialisé
   useEffect(() => {
@@ -45,13 +47,31 @@ const Game = () => {
     }
   }, [isMultiplayer, loading, isGameStarted, navigate, loadingGame])
 
+  // Effet pour afficher le jeu avec un peu de délai après que tout soit prêt
+  useEffect(() => {
+    if (readyToPlay && !isReady) {
+      // Petit délai pour la transition visuelle
+      const readyTimeout = setTimeout(() => {
+        setIsReady(true)
+      }, 1000)
+
+      return () => clearTimeout(readyTimeout)
+    }
+  }, [readyToPlay, isReady])
+
   // Gestion des erreurs
   if (error) {
     return <ErrorDisplay message={error} onBack={() => navigate('/')} />
   }
 
   // Affichage du chargement
-  if (loading || loadingGame || selectedMovies.length === 0 || !readyToPlay) {
+  if (
+    loading ||
+    loadingGame ||
+    selectedMovies.length === 0 ||
+    !readyToPlay ||
+    !isReady
+  ) {
     return <Loading message={getLoadingMessage()} />
   }
 

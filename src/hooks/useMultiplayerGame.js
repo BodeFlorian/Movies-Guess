@@ -1,21 +1,19 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import gameService from '../services/gameService'
 import { useUser } from '../contexts/UserContext'
 import { useGame } from '../contexts/GameContext'
+import { GAME_DURATION } from '../utils/constants'
 
 /**
  * Hook pour gérer la logique d'une partie multijoueur
- * @param {string} gameId - Identifiant de la partie
- * @param {Array} movies - Liste des films disponibles
- * @returns {Object} - États et fonctions pour le mode multijoueur
  */
 const useMultiplayerGame = (gameId, movies) => {
   const navigate = useNavigate()
   const { user } = useUser()
   const { setCurrentGame, setSelectedMovies, setGuess, startGame } = useGame()
 
-  // États locaux pour la gestion du jeu multijoueur
+  // États
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [gameData, setGameData] = useState(null)
@@ -23,53 +21,117 @@ const useMultiplayerGame = (gameId, movies) => {
   const [gameStartTime, setGameStartTime] = useState(null)
   const [playersReady, setPlayersReady] = useState({})
   const [allPlayersReady, setAllPlayersReady] = useState(false)
+  const [localGuesses, setLocalGuesses] = useState({})
+
+  // Références
+  const checkAllPlayersReadyTimeoutRef = useRef(null)
+  const lastReadyStateLogRef = useRef({})
+  const checkStartedRef = useRef(false)
+  const delayStartTimeout = useRef(null)
 
   /**
-   * Vérifie si tous les joueurs ont chargé les films et sont prêts
+   * Vérifie si tous les joueurs sont prêts
    */
   const areAllPlayersReady = useCallback(() => {
     if (!gameData || !gameData.players) return false
 
-    // Récupérer la liste des joueurs depuis les données multijoueur
     const playerIds = gameData.players.map((player) =>
       typeof player === 'string' ? player : player.id,
     )
 
     if (playerIds.length === 0) return false
 
-    // Vérifier que chaque joueur est marqué comme prêt
-    const allReady = playerIds.every(
-      (playerId) => playersReady[playerId] === true,
-    )
+    const allReady =
+      playerIds.length > 0 &&
+      playerIds.every((playerId) => playersReady[playerId] === true)
 
-    // Log pour déboguer l'état des joueurs
-    console.log(`État de préparation des joueurs:`, playersReady)
-    console.log(`Tous les joueurs sont prêts: ${allReady}`)
-    console.log(`Joueurs attendus: [${playerIds.join(', ')}]`)
+    // Log uniquement si l'état a changé
+    const readyStatesString = JSON.stringify(playersReady)
+    if (readyStatesString !== JSON.stringify(lastReadyStateLogRef.current)) {
+      console.log(`État de préparation des joueurs:`, playersReady)
+      console.log(`Tous les joueurs sont prêts: ${allReady ? 'Oui' : 'Non'}`)
+      console.log(`Joueurs attendus: [${playerIds.join(', ')}]`)
+      lastReadyStateLogRef.current = JSON.parse(readyStatesString)
+    }
 
     return allReady
   }, [gameData, playersReady])
 
   /**
-   * Surveille l'état de préparation de tous les joueurs
+   * Démarre la partie avec un délai
+   */
+  const startGameWithDelay = useCallback(() => {
+    if (checkStartedRef.current) return
+
+    checkStartedRef.current = true
+    console.log('Démarrage automatique de la partie avec délai (3s)...')
+
+    if (delayStartTimeout.current) {
+      clearTimeout(delayStartTimeout.current)
+    }
+
+    delayStartTimeout.current = setTimeout(() => {
+      gameService.startGame(gameId)
+    }, 3000)
+  }, [gameId])
+
+  /**
+   * Met à jour les films avec une fusion des données locales et serveur
+   */
+  const updateMovies = useCallback(
+    (serverMovies) => {
+      if (!serverMovies || !Array.isArray(serverMovies)) return serverMovies
+
+      // Créer une copie pour les modifications
+      const updatedMovies = [...serverMovies]
+
+      // Appliquer les guesses locaux en attente
+      Object.entries(localGuesses).forEach(([title, guessInfo]) => {
+        const movieIndex = updatedMovies.findIndex((m) => m.title === title)
+        if (movieIndex !== -1) {
+          // N'appliquer que si le guess n'est pas déjà présent du serveur
+          if (
+            !updatedMovies[movieIndex].guess ||
+            !updatedMovies[movieIndex].guess.isGuess
+          ) {
+            updatedMovies[movieIndex] = {
+              ...updatedMovies[movieIndex],
+              guess: guessInfo,
+            }
+          }
+        }
+      })
+
+      return updatedMovies
+    },
+    [localGuesses],
+  )
+
+  /**
+   * Surveille l'état de préparation des joueurs
    */
   useEffect(() => {
     if (gameData && gameData.players) {
       const ready = areAllPlayersReady()
       setAllPlayersReady(ready)
 
-      // Si tous les joueurs sont prêts et que l'utilisateur est l'hôte,
-      // démarrer automatiquement la partie
-      if (ready && !gameStartTime && !gameData.isStarted) {
+      if (ready && !gameStartTime && !checkStartedRef.current) {
         if (user && (user === gameData.hostId || user.id === gameData.hostId)) {
-          console.log(
-            'Démarrage automatique de la partie car tous les joueurs sont prêts',
-          )
-          gameService.startGame(gameId)
+          if (checkAllPlayersReadyTimeoutRef.current) {
+            clearTimeout(checkAllPlayersReadyTimeoutRef.current)
+          }
+
+          startGameWithDelay()
         }
       }
     }
-  }, [areAllPlayersReady, gameData, gameId, gameStartTime, user])
+
+    return () => {
+      if (delayStartTimeout.current) {
+        clearTimeout(delayStartTimeout.current)
+      }
+    }
+  }, [areAllPlayersReady, gameData, gameStartTime, user, startGameWithDelay])
 
   /**
    * Initialise une partie multijoueur
@@ -79,11 +141,9 @@ const useMultiplayerGame = (gameId, movies) => {
 
     try {
       setLoading(true)
-      // Vérifier si la partie existe déjà
       const gameExists = await gameService.checkGameExists(gameId)
 
       if (!gameExists) {
-        // Initialiser une nouvelle partie si elle n'existe pas
         await gameService.initializeMultiplayerGame(
           gameId,
           movies,
@@ -102,7 +162,7 @@ const useMultiplayerGame = (gameId, movies) => {
   }, [gameId, user, movies, gameInitialized])
 
   /**
-   * Informe le serveur que ce joueur a chargé les films
+   * Informe le serveur que ce joueur est prêt
    */
   const markPlayerReady = useCallback(async () => {
     if (!gameId || !user) return
@@ -128,28 +188,97 @@ const useMultiplayerGame = (gameId, movies) => {
 
       setGameData(data)
 
-      // Si la partie est déjà démarrée et que nous n'avons pas encore notre gameStartTime
-      if (data.isStarted && !gameStartTime) {
-        console.log('La partie a démarré, initialisation des états locaux')
-        startGame()
-        setGameStartTime(Date.now())
-      }
+      if (data.isStarted) {
+        // Première fois qu'on détecte le démarrage
+        if (!gameStartTime || data.calculatedEndTime) {
+          console.log('La partie a démarré, initialisation des états locaux')
+          startGame()
 
-      // Mettre à jour les films et le temps
-      if (data.movies && data.movies.length > 0) {
-        setSelectedMovies(data.movies)
-        setCurrentGame(data.movies, data.endTime)
+          if (data.calculatedEndTime) {
+            console.log(
+              `Utilisation du temps de fin du serveur: ${new Date(data.calculatedEndTime).toLocaleTimeString()}`,
+            )
+            setGameStartTime(data.calculatedEndTime - GAME_DURATION)
+
+            // Appliquer les données avec fusion
+            const mergedMovies = updateMovies(data.movies)
+            setSelectedMovies(mergedMovies)
+            setCurrentGame(mergedMovies, data.calculatedEndTime)
+          } else {
+            const startTimeWithDelay = Date.now() + 3000
+            setGameStartTime(startTimeWithDelay)
+            const calculatedEndTime = startTimeWithDelay + GAME_DURATION
+            console.log(
+              `Définition du temps de fin à ${new Date(calculatedEndTime).toLocaleTimeString()}`,
+            )
+
+            // Appliquer les données avec fusion
+            const mergedMovies = updateMovies(data.movies)
+            setSelectedMovies(mergedMovies)
+            setCurrentGame(mergedMovies, calculatedEndTime)
+          }
+        } else if (data.movies && data.movies.length > 0) {
+          // Mise à jour normale avec fusion des données locales
+          const mergedMovies = updateMovies(data.movies)
+          setSelectedMovies(mergedMovies)
+
+          // Maintenir le même temps de fin
+          if (data.calculatedEndTime) {
+            setCurrentGame(mergedMovies, data.calculatedEndTime)
+          }
+        }
+
+        setLoading(false)
+      } else if (!data.isStarted && gameStartTime) {
+        setGameStartTime(null)
+      } else if (data.movies && data.movies.length > 0) {
+        // Mise à jour avec fusion des données locales
+        const mergedMovies = updateMovies(data.movies)
+        setSelectedMovies(mergedMovies)
+
+        if (data.calculatedEndTime) {
+          setCurrentGame(mergedMovies, data.calculatedEndTime)
+        } else if (gameStartTime && data.isStarted) {
+          const calculatedEndTime = gameStartTime + GAME_DURATION
+          setCurrentGame(mergedMovies, calculatedEndTime)
+        }
+
         setLoading(false)
       }
 
-      // Mettre à jour le score
-      const guessedCount = data.movies
-        ? data.movies.filter((movie) => movie.guess && movie.guess.isGuess)
-            .length
-        : 0
+      // Mettre à jour le score en fonction des films devinés
+      // en prenant en compte à la fois les données serveur et locales
+      const updatedMovies = updateMovies(data.movies || [])
+      const guessedCount = updatedMovies.filter(
+        (movie) =>
+          movie.guess &&
+          movie.guess.isGuess &&
+          movie.guess.guessBy === (user.id || user),
+      ).length
+
       setGuess(guessedCount)
 
-      // Vérifier si la partie est terminée
+      // Nettoyage des guesses locaux dont le serveur a confirmé la prise en compte
+      if (data.movies && Object.keys(localGuesses).length > 0) {
+        const newLocalGuesses = { ...localGuesses }
+        let changed = false
+
+        data.movies.forEach((serverMovie) => {
+          if (
+            serverMovie.guess &&
+            serverMovie.guess.isGuess &&
+            newLocalGuesses[serverMovie.title]
+          ) {
+            delete newLocalGuesses[serverMovie.title]
+            changed = true
+          }
+        })
+
+        if (changed) {
+          setLocalGuesses(newLocalGuesses)
+        }
+      }
+
       if (data.isEnded) {
         setTimeout(() => {
           navigate(`/game/results?gameId=${gameId}`)
@@ -164,6 +293,9 @@ const useMultiplayerGame = (gameId, movies) => {
       setGuess,
       setSelectedMovies,
       startGame,
+      updateMovies,
+      user,
+      localGuesses,
     ],
   )
 
@@ -173,13 +305,11 @@ const useMultiplayerGame = (gameId, movies) => {
   useEffect(() => {
     if (!gameId || !user || !gameInitialized) return
 
-    // S'abonner aux changements de la partie
     const unsubscribe = gameService.subscribeToGameChanges(
       gameId,
       handleGameChanges,
     )
 
-    // S'abonner aux changements de l'état de préparation des joueurs
     const unsubscribeReady = gameService.subscribeToPlayersReady(
       gameId,
       (readyStates) => {
@@ -190,20 +320,43 @@ const useMultiplayerGame = (gameId, movies) => {
     return () => {
       unsubscribe()
       unsubscribeReady()
+
+      if (checkAllPlayersReadyTimeoutRef.current) {
+        clearTimeout(checkAllPlayersReadyTimeoutRef.current)
+      }
+      if (delayStartTimeout.current) {
+        clearTimeout(delayStartTimeout.current)
+      }
     }
   }, [gameId, user, gameInitialized, handleGameChanges])
 
   /**
-   * Soumet une proposition de film
-   * @param {string} title - Titre du film deviné
+   * Soumet une proposition de film (optimistic update)
    */
   const submitGuess = useCallback(
     (title) => {
-      if (gameId && user) {
-        gameService.submitGuess(gameId, title, user.id || user)
-      }
+      if (!gameId || !user) return
+
+      // Application immédiate en local
+      const guessInfo = { isGuess: true, guessBy: user.id || user }
+
+      // Stocker dans l'état local pour fusion
+      setLocalGuesses((prev) => ({ ...prev, [title]: guessInfo }))
+
+      // Mise à jour locale immédiate des films
+      setSelectedMovies((prev) => {
+        return prev.map((movie) =>
+          movie.title === title ? { ...movie, guess: guessInfo } : movie,
+        )
+      })
+
+      // Mise à jour du score local
+      setGuess((prev) => prev + 1)
+
+      // Envoyer au serveur
+      gameService.submitGuess(gameId, title, user.id || user)
     },
-    [gameId, user],
+    [gameId, user, setSelectedMovies, setGuess],
   )
 
   /**
@@ -216,7 +369,7 @@ const useMultiplayerGame = (gameId, movies) => {
   }, [gameId])
 
   /**
-   * Calcule un message de chargement personnalisé
+   * Message de chargement personnalisé
    */
   const getLoadingMessage = useCallback(() => {
     if (!gameData) return 'Chargement du jeu multijoueur...'
@@ -226,8 +379,16 @@ const useMultiplayerGame = (gameId, movies) => {
       (ready) => ready === true,
     ).length
 
+    if (gameData.isStarted && !gameStartTime) {
+      return 'Préparation de la partie...'
+    }
+
+    if (allPlayersReady) {
+      return 'Tous les joueurs sont prêts, la partie démarre...'
+    }
+
     return `En attente des joueurs : ${readyPlayers}/${totalPlayers} prêts`
-  }, [gameData, playersReady])
+  }, [gameData, playersReady, gameStartTime, allPlayersReady])
 
   return {
     loading,

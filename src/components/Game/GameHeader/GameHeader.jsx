@@ -24,7 +24,10 @@ const GameHeader = ({
     if (isMultiplayer && multiplayerData && multiplayerData.movies) {
       // En mode multijoueur, compter les films devinés par le joueur courant
       currentUserScore = multiplayerData.movies.filter(
-        (movie) => movie.guess && movie.guess.guessBy === (user.id || user),
+        (movie) =>
+          movie.guess &&
+          movie.guess.isGuess &&
+          movie.guess.guessBy === (user.id || user),
       ).length
     } else {
       // En mode solo, utiliser le score du contexte de jeu
@@ -34,9 +37,8 @@ const GameHeader = ({
 
   return (
     <div className="game-header">
-      {remainingTime > 0 && (
-        <div className="game-time">{formatTime(remainingTime)}</div>
-      )}
+      {/* Toujours afficher le temps, même s'il est à 0 */}
+      <div className="game-time">{formatTime(remainingTime)}</div>
       <div className="player-score">Score : {currentUserScore}</div>
       {showBackButton && onBackToMenu && (
         <button className="game-header__button" onClick={onBackToMenu}>

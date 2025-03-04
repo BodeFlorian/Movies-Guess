@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
 } from 'react'
 import PropTypes from 'prop-types'
 import { selectRandomMovies } from '../services/movieService'
@@ -64,6 +65,9 @@ export const GameProvider = ({ children }) => {
   const [loadingGame, setLoadingGame] = useState(true)
   const [selectedMovies, setSelectedMovies] = useState([])
 
+  // Références pour éviter les multiples mises à jour
+  const lastUpdateTimeRef = useRef(0)
+
   /**
    * Démarre le jeu
    */
@@ -120,6 +124,14 @@ export const GameProvider = ({ children }) => {
    */
   const updateGuess = useCallback(
     (title, guessedBy) => {
+      // Limiter la fréquence des mises à jour (throttling)
+      const now = Date.now()
+      if (now - lastUpdateTimeRef.current < 100) {
+        console.log('Mise à jour ignorée (trop fréquente)')
+        return
+      }
+      lastUpdateTimeRef.current = now
+
       const updatedMovies = currentGame.movies.map((movie) =>
         movie.title === title
           ? { ...movie, guess: { isGuess: true, guessBy: guessedBy } }
@@ -174,8 +186,9 @@ export const GameProvider = ({ children }) => {
         (movie) => ({ ...movie, guess: { isGuess: false, guessBy: null } }),
       )
 
-      // Calcul du temps de fin de partie
-      const newEndTime = Date.now() + GAME_DURATION
+      // Calcul du temps de fin de partie (sera ajusté après le chargement)
+      // Ajouter un délai supplémentaire pour s'assurer que tous les joueurs sont prêts
+      const newEndTime = Date.now() + GAME_DURATION + 3000
 
       // Mise à jour des états
       setSelectedMovies(randomMovies)

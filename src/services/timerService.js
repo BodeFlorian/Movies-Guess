@@ -7,6 +7,7 @@ class TimerService {
     this.listeners = new Map()
     this.timerId = null
     this.isRunning = false
+    this.lastTick = 0
   }
 
   /**
@@ -16,6 +17,7 @@ class TimerService {
     if (this.isRunning) return
 
     this.isRunning = true
+    this.lastTick = Date.now()
     this.tick()
   }
 
@@ -24,6 +26,9 @@ class TimerService {
    */
   tick() {
     const now = Date.now()
+
+    // Vérifier le temps écoulé depuis le dernier tick pour ajuster la fréquence
+    this.lastTick = now
 
     // Notifier tous les abonnés
     this.listeners.forEach((callback, id) => {
@@ -36,7 +41,9 @@ class TimerService {
 
     // Planifier le prochain tick seulement s'il y a des abonnés
     if (this.listeners.size > 0) {
-      this.timerId = setTimeout(() => this.tick(), 1000)
+      // Ajuster le délai pour maintenir une fréquence constante (environ 1 tick par seconde)
+      const nextTickDelay = Math.max(50, 1000 - (Date.now() - now))
+      this.timerId = setTimeout(() => this.tick(), nextTickDelay)
     } else {
       this.stop()
     }

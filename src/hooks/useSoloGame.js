@@ -25,6 +25,7 @@ const useSoloGame = (movies) => {
   const [gameStartTime, setGameStartTime] = useState(null)
   const [initialized, setInitialized] = useState(false)
   const redirectedRef = useRef(false)
+  const initializationTimeoutRef = useRef(null)
 
   // Référence à la liste de films pour éviter de l'inclure dans les dépendances
   const moviesRef = useRef(movies)
@@ -48,10 +49,26 @@ const useSoloGame = (movies) => {
       if (!restored && moviesRef.current.length > 0) {
         initializeNewGame(moviesRef.current)
         startGame()
-        setGameStartTime(Date.now())
+
+        // Définir le temps de démarrage avec un délai pour permettre une transition visuelle
+        if (initializationTimeoutRef.current) {
+          clearTimeout(initializationTimeoutRef.current)
+        }
+
+        initializationTimeoutRef.current = setTimeout(() => {
+          console.log('Partie solo: initialisation terminée, démarrage du jeu')
+          setGameStartTime(Date.now())
+        }, 3000)
       } else if (restored) {
-        // Si une partie a été restaurée, définir le moment du démarrage
-        setGameStartTime(Date.now() - 1000) // Petit décalage pour éviter les fins immédiates
+        // Si une partie a été restaurée, définir le moment du démarrage avec un petit délai
+        if (initializationTimeoutRef.current) {
+          clearTimeout(initializationTimeoutRef.current)
+        }
+
+        initializationTimeoutRef.current = setTimeout(() => {
+          console.log('Partie solo restaurée: démarrage du jeu')
+          setGameStartTime(Date.now())
+        }, 1000)
       }
 
       // Mettre à jour les états de chargement
@@ -72,6 +89,13 @@ const useSoloGame = (movies) => {
   useEffect(() => {
     if (!initialized && movies.length > 0) {
       initializeGame()
+    }
+
+    // Nettoyer le timeout lors du démontage
+    return () => {
+      if (initializationTimeoutRef.current) {
+        clearTimeout(initializationTimeoutRef.current)
+      }
     }
   }, [initialized, movies.length, initializeGame])
 

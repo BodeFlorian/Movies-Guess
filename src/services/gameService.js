@@ -15,6 +15,9 @@ import { db } from '../config/firebaseConfig'
 import { GAME_DURATION, TOTAL_FILMS } from '../utils/constants'
 import { selectRandomMovies } from './movieService'
 
+// Cache pour éviter les appels répétés
+const cache = new Map()
+
 /**
  * Service pour gérer les opérations liées aux parties de jeu
  */
@@ -26,9 +29,20 @@ const gameService = {
    */
   async checkGameExists(gameId) {
     try {
+      // Vérifier le cache d'abord
+      if (cache.has(`game_exists_${gameId}`)) {
+        return cache.get(`game_exists_${gameId}`)
+      }
+
       const gameRef = doc(db, 'games', gameId)
       const gameSnap = await getDoc(gameRef)
-      return gameSnap.exists()
+      const exists = gameSnap.exists()
+
+      // Stocker dans le cache pendant 10 secondes
+      cache.set(`game_exists_${gameId}`, exists)
+      setTimeout(() => cache.delete(`game_exists_${gameId}`), 10000)
+
+      return exists
     } catch (error) {
       console.error(
         "Erreur lors de la vérification de l'existence du jeu:",
@@ -39,12 +53,49 @@ const gameService = {
   },
 
   /**
+   * Récupère les données d'un jeu
+   * @param {string} gameId - Identifiant du jeu
+   * @returns {Promise<Object|null>} - Données du jeu ou null
+   */
+  async getGameData(gameId) {
+    try {
+      // Vérifier le cache d'abord
+      if (cache.has(`game_data_${gameId}`)) {
+        return cache.get(`game_data_${gameId}`)
+      }
+
+      const gameRef = doc(db, 'games', gameId)
+      const gameSnap = await getDoc(gameRef)
+
+      if (!gameSnap.exists()) {
+        return null
+      }
+
+      const data = gameSnap.data()
+
+      // Stocker dans le cache pendant 3 secondes
+      cache.set(`game_data_${gameId}`, data)
+      setTimeout(() => cache.delete(`game_data_${gameId}`), 3000)
+
+      return data
+    } catch (error) {
+      console.error('Erreur lors de la récupération des données du jeu:', error)
+      return null
+    }
+  },
+
+  /**
    * Récupère les données d'un lobby
    * @param {string} lobbyId - Identifiant du lobby
    * @returns {Promise<Object|null>} - Données du lobby ou null
    */
   async getLobbyData(lobbyId) {
     try {
+      // Vérifier le cache d'abord
+      if (cache.has(`lobby_data_${lobbyId}`)) {
+        return cache.get(`lobby_data_${lobbyId}`)
+      }
+
       const lobbyRef = doc(db, 'lobbies', lobbyId)
       const lobbySnap = await getDoc(lobbyRef)
 
@@ -52,7 +103,13 @@ const gameService = {
         throw new Error("Le lobby n'existe pas")
       }
 
-      return lobbySnap.data()
+      const data = lobbySnap.data()
+
+      // Stocker dans le cache pendant 5 secondes
+      cache.set(`lobby_data_${lobbyId}`, data)
+      setTimeout(() => cache.delete(`lobby_data_${lobbyId}`), 5000)
+
+      return data
     } catch (error) {
       console.error(
         'Erreur lors de la récupération des données du lobby:',
@@ -116,16 +173,14 @@ const gameService = {
       (movie) => ({ ...movie, guess: { isGuess: false, guessBy: null } }),
     )
 
-    // Calculer le temps de fin (maintenant + durée de jeu)
-    const endTime = Date.now() + GAME_DURATION
-
-    // Créer l'objet de jeu
+    // Utiliser serverTimestamp pour le démarrage et calculer le temps de fin relatif à celui-ci
     return {
       movies: randomMovies,
       players: lobbyData.players || [],
       hostId,
-      startTime: serverTimestamp(),
-      endTime,
+      startTime: null, // Sera défini au démarrage
+      endTime: GAME_DURATION, // Durée en millisecondes
+      calculatedEndTime: null, // Sera calculé lors du démarrage effectif
       isEnded: false,
       isStarted: false,
       guesses: [],
@@ -141,12 +196,58 @@ const gameService = {
    */
   subscribeToGameChanges(gameId, callback) {
     const gameRef = doc(db, 'games', gameId)
+    let lastData = null
 
     return onSnapshot(
       gameRef,
       (snapshot) => {
         if (snapshot.exists()) {
-          callback(snapshot.data())
+          const data = snapshot.data()
+
+          // Si la partie vient de démarrer, calculer le temps de fin à partir de maintenant + délai
+          if (data.isStarted && !data.calculatedEndTime) {
+            const delayStart = 3000 // 3 secondes de délai pour le démarrage
+            data.calculatedEndTime = Date.now() + data.endTime + delayStart
+
+            // Mettre à jour le temps de fin calculé dans la base
+            updateDoc(gameRef, {
+              calculatedEndTime: data.calculatedEndTime,
+            }).catch((err) =>
+              console.error(
+                'Erreur lors de la mise à jour du temps de fin:',
+                err,
+              ),
+            )
+          }
+
+          // Ne déclencher le callback que si les données ont changé significativement
+          const currentDataStr = JSON.stringify({
+            isStarted: data.isStarted,
+            isEnded: data.isEnded,
+            calculatedEndTime: data.calculatedEndTime,
+            guessesCount: data.guesses ? data.guesses.length : 0,
+            moviesGuessed: data.movies
+              ? data.movies.filter((m) => m.guess && m.guess.isGuess).length
+              : 0,
+          })
+
+          const lastDataStr = lastData
+            ? JSON.stringify({
+                isStarted: lastData.isStarted,
+                isEnded: lastData.isEnded,
+                calculatedEndTime: lastData.calculatedEndTime,
+                guessesCount: lastData.guesses ? lastData.guesses.length : 0,
+                moviesGuessed: lastData.movies
+                  ? lastData.movies.filter((m) => m.guess && m.guess.isGuess)
+                      .length
+                  : 0,
+              })
+            : null
+
+          if (!lastData || currentDataStr !== lastDataStr) {
+            lastData = { ...data }
+            callback(data)
+          }
         } else {
           console.error("La partie n'existe pas ou a été supprimée")
           callback(null)
@@ -207,7 +308,6 @@ const gameService = {
    */
   isMovieAlreadyGuessed(gameData, movieIndex) {
     if (movieIndex === -1) {
-      console.error("Le film n'existe pas dans la liste")
       return true
     }
 
@@ -215,7 +315,6 @@ const gameService = {
       gameData.movies[movieIndex].guess &&
       gameData.movies[movieIndex].guess.isGuess
     ) {
-      console.log('Ce film a déjà été deviné')
       return true
     }
 
@@ -239,11 +338,13 @@ const gameService = {
 
     // Ajouter du temps bonus (2 secondes)
     const bonusTime = 2000
-    const newEndTime = gameData.endTime + bonusTime
+    const currentEndTime =
+      gameData.calculatedEndTime || Date.now() + gameData.endTime
+    const newEndTime = currentEndTime + bonusTime
 
     return {
       movies: updatedMovies,
-      endTime: newEndTime,
+      calculatedEndTime: newEndTime,
       guesses: arrayUnion({
         movieTitle: updatedMovies[movieIndex].title,
         userId,
@@ -336,14 +437,6 @@ const gameService = {
       console.log(
         `Joueur ${playerId} est maintenant ${isReady ? 'prêt' : 'pas prêt'}`,
       )
-
-      // Vérifier si tous les joueurs sont prêts après cette mise à jour
-      const allReady = await this.checkAllPlayersReady(gameId)
-
-      console.log(
-        `Après la mise à jour, tous les joueurs sont prêts: ${allReady}`,
-      )
-
       return true
     } catch (error) {
       console.error(
@@ -391,12 +484,6 @@ const gameService = {
         playerIds.length > 0 &&
         playerIds.every((playerId) => readyStates[playerId] === true)
 
-      console.log(
-        `Vérification: tous les joueurs sont prêts? ${allReady ? 'Oui' : 'Non'}`,
-      )
-      console.log(`Joueurs: ${playerIds.join(', ')}`)
-      console.log(`États de préparation: ${JSON.stringify(readyStates)}`)
-
       return allReady
     } catch (error) {
       console.error('Erreur lors de la vérification des joueurs prêts:', error)
@@ -412,6 +499,7 @@ const gameService = {
    */
   subscribeToPlayersReady(gameId, callback) {
     const playersReadyRef = collection(db, 'games', gameId, 'playersReady')
+    let lastReadyStates = null
 
     return onSnapshot(
       playersReadyRef,
@@ -420,10 +508,15 @@ const gameService = {
         snapshot.forEach((doc) => {
           readyStates[doc.id] = doc.data().ready
         })
-        console.log(
-          `Mise à jour des états de préparation: ${JSON.stringify(readyStates)}`,
-        )
-        callback(readyStates)
+
+        // Ne déclencher le callback que si les états ont changé
+        if (JSON.stringify(readyStates) !== JSON.stringify(lastReadyStates)) {
+          console.log(
+            `Mise à jour des états de préparation: ${JSON.stringify(readyStates)}`,
+          )
+          lastReadyStates = readyStates
+          callback(readyStates)
+        }
       },
       (error) => {
         console.error(
@@ -455,9 +548,15 @@ const gameService = {
       }
 
       console.log('Démarrage de la partie...')
+
+      // Calculer le temps de fin à partir du moment actuel + la durée de jeu
+      // Le temps sera ajusté côté client pour ajouter un délai d'initialisation
+      const endTime = Date.now() + GAME_DURATION
+
       await updateDoc(gameRef, {
         isStarted: true,
         startTime: serverTimestamp(),
+        calculatedEndTime: endTime,
       })
 
       console.log('Le jeu a été démarré avec succès')
@@ -475,6 +574,11 @@ const gameService = {
    */
   async getGameResults(gameId) {
     try {
+      // Vérifier le cache d'abord
+      if (cache.has(`game_results_${gameId}`)) {
+        return cache.get(`game_results_${gameId}`)
+      }
+
       const gameRef = doc(db, 'games', gameId)
       const gameSnap = await getDoc(gameRef)
 
@@ -482,7 +586,13 @@ const gameService = {
         return null
       }
 
-      return gameSnap.data()
+      const data = gameSnap.data()
+
+      // Stocker dans le cache pendant 10 secondes
+      cache.set(`game_results_${gameId}`, data)
+      setTimeout(() => cache.delete(`game_results_${gameId}`), 10000)
+
+      return data
     } catch (error) {
       console.error('Erreur lors de la récupération des résultats:', error)
       return null
@@ -496,6 +606,12 @@ const gameService = {
    */
   async findActiveGamesForPlayer(playerId) {
     try {
+      // Vérifier le cache d'abord
+      const cacheKey = `active_games_${playerId}`
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey)
+      }
+
       const gamesRef = collection(db, 'games')
       const activeGames = []
 
@@ -522,6 +638,10 @@ const gameService = {
           }
         }
       })
+
+      // Stocker dans le cache pendant 5 secondes
+      cache.set(cacheKey, activeGames)
+      setTimeout(() => cache.delete(cacheKey), 5000)
 
       return activeGames
     } catch (error) {

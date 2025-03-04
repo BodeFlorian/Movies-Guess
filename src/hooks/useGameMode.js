@@ -20,11 +20,14 @@ const useGameMode = (gameId) => {
   const [moviesLoaded, setMoviesLoaded] = useState(false)
   const [moviesLoading, setMoviesLoading] = useState(true)
   const [gameInitialized, setGameInitialized] = useState(false)
+  const [countdownStarted, setCountdownStarted] = useState(false)
 
   // Références pour éviter les re-rendus
   const gameEndedRef = useRef(false)
   const gameEndTimeRef = useRef(gameEndTime)
   const isGameStartedRef = useRef(isGameStarted)
+  const countdownTimeoutRef = useRef(null)
+  const lastRemainingTime = useRef(0)
 
   // Mettre à jour les références quand les valeurs changent
   useEffect(() => {
@@ -33,10 +36,26 @@ const useGameMode = (gameId) => {
 
     // Calculer le temps restant initial
     if (gameEndTime) {
-      setRemainingTime(Math.max(0, gameEndTime - Date.now()))
+      const timeRemaining = Math.max(0, gameEndTime - Date.now())
+      setRemainingTime(timeRemaining)
+      lastRemainingTime.current = timeRemaining
+
+      // Si countdown n'est pas encore commencé, vérifier si on peut le démarrer
+      if (!countdownStarted && isGameStarted) {
+        // Démarrer après un court délai pour s'assurer que tous les joueurs sont prêts
+        if (countdownTimeoutRef.current) {
+          clearTimeout(countdownTimeoutRef.current)
+        }
+
+        countdownTimeoutRef.current = setTimeout(() => {
+          setCountdownStarted(true)
+          console.log('Démarrage du décompte du temps')
+        }, 1000)
+      }
+
       gameEndedRef.current = false
     }
-  }, [gameEndTime, isGameStarted])
+  }, [gameEndTime, isGameStarted, countdownStarted])
 
   // Initialisation des hooks de jeu
   const solo = useSoloGame(movies)
@@ -68,11 +87,16 @@ const useGameMode = (gameId) => {
    */
   const onTimerTick = useCallback(
     (now) => {
-      if (!gameEndTimeRef.current) return
+      if (!gameEndTimeRef.current || !countdownStarted) return
 
       // Calculer le temps restant
       const timeLeft = Math.max(0, gameEndTimeRef.current - now)
-      setRemainingTime(timeLeft)
+
+      // Ne mettre à jour que si le temps a changé significativement (pour éviter les re-rendus inutiles)
+      if (Math.abs(timeLeft - lastRemainingTime.current) >= 500) {
+        lastRemainingTime.current = timeLeft
+        setRemainingTime(timeLeft)
+      }
 
       // Vérifier si le temps est écoulé
       if (timeLeft === 0 && isGameStartedRef.current && !gameEndedRef.current) {
@@ -83,6 +107,7 @@ const useGameMode = (gameId) => {
         // Vérifier que le jeu a démarré depuis au moins 3 secondes
         const minGameDuration = 3000
         if (gameStartTime && now - gameStartTime > minGameDuration) {
+          console.log('Temps écoulé, fin de la partie')
           endGameAction()
         }
       }
@@ -92,6 +117,7 @@ const useGameMode = (gameId) => {
       isMultiplayer,
       multiplayer.gameStartTime,
       solo.gameStartTime,
+      countdownStarted,
     ],
   )
 
@@ -153,6 +179,17 @@ const useGameMode = (gameId) => {
   }, [isMultiplayer, moviesLoaded, multiplayer, gameInitialized])
 
   /**
+   * Nettoie les ressources lors du démontage du composant
+   */
+  useEffect(() => {
+    return () => {
+      if (countdownTimeoutRef.current) {
+        clearTimeout(countdownTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  /**
    * Gère une proposition de film
    */
   const handleGuess = useCallback(
@@ -176,10 +213,15 @@ const useGameMode = (gameId) => {
   // Message de chargement personnalisé
   const getLoadingMessage = useCallback(() => {
     if (moviesLoading) return 'Chargement des films...'
+
+    if (isGameStartedRef.current && !countdownStarted) {
+      return 'Préparation du jeu, la partie va commencer...'
+    }
+
     return isMultiplayer
       ? multiplayer.getLoadingMessage()
       : 'Initialisation de la partie...'
-  }, [isMultiplayer, moviesLoading, multiplayer])
+  }, [isMultiplayer, moviesLoading, multiplayer, countdownStarted])
 
   // Déterminer si on est prêt à afficher le jeu
   const readyToPlay = isMultiplayer
@@ -199,6 +241,7 @@ const useGameMode = (gameId) => {
     loadMovies,
     handleGuess,
     getLoadingMessage,
+    countdownStarted,
   }
 }
 
