@@ -25,7 +25,11 @@ export const fetchUrl = async (url, options = {}) => {
   }
 
   try {
-    const response = await fetch(url, mergedOptions)
+    const corsProxy = 'https://corsproxy.io/?'
+    const response = await fetch(
+      corsProxy + encodeURIComponent(url),
+      mergedOptions,
+    )
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
