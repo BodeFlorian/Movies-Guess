@@ -3,6 +3,7 @@ const defaultOptions = {
   headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+    'Access-Control-Allow-Origin': '*',
   },
 }
 
@@ -25,11 +26,7 @@ export const fetchUrl = async (url, options = {}) => {
   }
 
   try {
-    const corsProxy = 'https://corsproxy.io/?'
-    const response = await fetch(
-      corsProxy + encodeURIComponent(url),
-      mergedOptions,
-    )
+    const response = await fetch(url, mergedOptions)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
