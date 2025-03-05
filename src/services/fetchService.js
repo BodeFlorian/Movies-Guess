@@ -3,7 +3,7 @@ const defaultOptions = {
   headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://movies-guess.netlify.app/',
   },
 }
 
