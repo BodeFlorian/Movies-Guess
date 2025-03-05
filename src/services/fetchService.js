@@ -3,7 +3,6 @@ const defaultOptions = {
   headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-    'Access-Control-Allow-Origin': 'https://movies-guess.netlify.app/',
   },
 }
 
@@ -23,6 +22,7 @@ export const fetchUrl = async (url, options = {}) => {
       ...defaultOptions.headers,
       ...(options.headers || {}),
     },
+    mode: 'no-cors',
   }
 
   try {
